@@ -11,9 +11,9 @@ Esta es la opción más estable. Render hospeda el código y Supabase hospeda la
 ### 🔌 Paso A: Configurar la Base de Datos (Supabase)
 1. Entra en [Supabase.com](https://supabase.com) y crea un proyecto gratuito.
 2. Ve a **Project Settings** -> **Database**.
-3. Busca la sección **Connection String**, selecciona el modo **URI** y copia la dirección. Se verá algo así:
-   `postgresql://postgres:[TU_PASSWORD]@db.[ID_PROYECTO].supabase.co:5432/postgres`
-4. **IMPORTANTE**: Asegúrate de reemplazar `[TU_PASSWORD]` con la contraseña que elegiste al crear el proyecto.
+3. Busca la sección **Connection String**, selecciona el modo **Pooler** (asegúrate de que esté en port **6543**) y copia la dirección. Se verá algo así:
+   `postgresql://postgres.[ID_PROYECTO]:[TU_PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres`
+4. **IMPORTANTE**: No uses el puerto 5432 en Render, ya que suele fallar por problemas de IPv6. El puerto 6543 es mucho más estable.
 
 ### 🚀 Paso B: Publicar la App (Render)
 1. Sube tu código a un repositorio de **GitHub** (puede ser privado).
