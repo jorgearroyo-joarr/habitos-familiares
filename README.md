@@ -53,7 +53,7 @@ Para publicar este proyecto de forma gratuita, consulta nuestra guía detallada:
 **[Guía de Despliegue (Render, Supabase, Fly.io)](./docs/DEPLOYMENT.md)**
 
 ## 🛠️ Tech Stack
-- **Backend:** FastAPI (Python 3.14+)
+- **Backend:** FastAPI (Python 3.12+)
 - **Database:** SQLAlchemy (SQLite / PostgreSQL / MySQL)
 - **Frontend:** Vanilla HTML5, CSS3 (Glassmorphism), Modern JavaScript
 - **Deployment:** Render, Supabase, Fly.io
