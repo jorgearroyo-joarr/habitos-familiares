@@ -4,6 +4,7 @@ FastAPI application entry point.
 Serves the REST API and static frontend files.
 """
 import logging
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -28,8 +29,23 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: create tables and seed default data."""
+    print("DEBUG: Entering lifespan", flush=True)
     logger.info("🚀 HábitosFam v3 starting up (%s)", settings.db_engine_type)
-    create_tables()
+    sys.stdout.flush()
+    
+    try:
+        logger.info("📡 Initializing database tables...")
+        sys.stdout.flush()
+        create_tables()
+        logger.info("✅ Database tables created/verified")
+        sys.stdout.flush()
+    except Exception as e:
+        logger.error("❌ FAILED to create tables: %s", e, exc_info=True)
+        sys.stdout.flush()
+        # We don't re-raise here to allow the app to at least start 
+        # so we can see the logs on Render before it crashes/restarts.
+        # But actually, it's better to let it fail so we know.
+        raise
 
     # Auto-seed default profiles, habits, micro-habits, reward tiers
     from .database import SessionLocal

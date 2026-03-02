@@ -46,14 +46,16 @@ def _build_engine():
         logger.info("📁 SQLite engine created at: %s", url)
 
     elif "postgresql" in url or "postgres" in url:
+        # PostgreSQL-specific: add connection timeout to avoid hanging indefinitely
         engine = create_engine(
             url,
             pool_size=5,
             max_overflow=10,
             pool_pre_ping=True,   # detect stale connections
+            connect_args={"connect_timeout": 10},
             echo=settings.debug,
         )
-        logger.info("🐘 PostgreSQL engine created")
+        logger.info("🐘 PostgreSQL engine created (timeout: 10s)")
 
     else:  # MySQL
         engine = create_engine(
