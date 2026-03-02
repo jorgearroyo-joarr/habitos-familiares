@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HábitosFam Admin 🛡️</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+</head>
+
+<body>
+
+    <!-- PIN Login -->
+    <div id="admin-login" class="admin-login">
+        <div class="login-card">
+            <h1>🛡️ Admin Panel</h1>
+            <p>Ingresa el PIN de administrador</p>
+            <div class="pin-row">
+                <input type="password" id="admin-pin" maxlength="8" class="pin-field" placeholder="PIN" />
+                <button onclick="login()" class="btn-primary">Entrar</button>
+            </div>
+            <div id="login-error" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="admin-dashboard hidden">
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <div>
+                    <h1>⚙️ HábitosFam Admin</h1>
+                    <p class="admin-subtitle">Panel de configuración</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/" class="btn-outline">🏠 App</a>
+                    <button onclick="logout()" class="btn-outline">🚪 Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="admin-tabs">
+            <button class="admin-tab active" onclick="showSection('profiles')">👥 Perfiles</button>
+            <button class="admin-tab" onclick="showSection('habits')">📋 Hábitos</button>
+            <button class="admin-tab" onclick="showSection('rewards')">💰 Recompensas</button>
+            <button class="admin-tab" onclick="showSection('settings')">⚙️ Ajustes</button>
+            <button class="admin-tab" onclick="showSection('data')">📊 Datos</button>
+        </nav>
+
+        <main class="admin-main">
+
+            <!-- ===== PROFILES ===== -->
+            <section id="sec-profiles" class="admin-section active">
+                <h2>👥 Gestión de Perfiles</h2>
+                <div class="section-actions">
+                    <button class="btn-primary" onclick="showAddProfile()">➕ Nuevo Perfil</button>
+                </div>
+                <div id="profiles-list" class="cards-grid"></div>
+
+                <!-- Add/Edit Profile Modal -->
+                <div id="profile-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3 id="profile-modal-title">Nuevo Perfil</h3>
+                        <form id="profile-form" onsubmit="saveProfile(event)">
+                            <input type="hidden" id="pf-slug-original" />
+                            <div class="form-row">
+                                <label>Slug (ID único)</label>
+                                <input type="text" id="pf-slug" required pattern="[a-z0-9]+"
+                                    placeholder="nombre_unico" />
+                            </div>
+                            <div class="form-row">
+                                <label>Nombre</label>
+                                <input type="text" id="pf-name" required placeholder="Nombre" />
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-row"><label>Edad</label><input type="number" id="pf-age" required
+                                        min="1" max="99" /></div>
+                                <div class="form-row"><label>Avatar</label><input type="text" id="pf-avatar"
+                                        placeholder="🦄" /></div>
+                                <div class="form-row"><label>Tema</label><input type="text" id="pf-theme"
+                                        placeholder="default" /></div>
+                                <div class="form-row"><label>PIN</label><input type="password" id="pf-pin"
+                                        placeholder="****" minlength="4" /></div>
+                            </div>
+                            <h4>💰 Recompensas</h4>
+                            <div class="form-grid">
+                                <div class="form-row"><label>Base semanal</label><input type="number" id="pf-base"
+                                        step="0.5" value="2" /></div>
+                                <div class="form-row"><label>Full semanal</label><input type="number" id="pf-full"
+                                        step="0.5" value="4" /></div>
+                                <div class="form-row"><label>% mín mensual</label><input type="number"
+                                        id="pf-monthly-pct" step="0.05" value="0.75" min="0" max="1" /></div>
+                            </div>
+                            <div class="form-row"><label>Recompensa mensual</label><input type="text"
+                                    id="pf-monthly-desc" placeholder="Actividad especial 🎪" /></div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn-primary">Guardar</button>
+                                <button type="button" class="btn-outline"
+                                    onclick="closeModal('profile-modal')">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== HABITS ===== -->
+            <section id="sec-habits" class="admin-section">
+                <h2>📋 Hábitos y Micro-Hábitos</h2>
+                <div class="form-row">
+                    <label>Perfil</label>
+                    <select id="habit-profile-select" onchange="loadHabits()"></select>
+                </div>
+                <div class="section-actions">
+                    <button class="btn-primary" onclick="showAddHabit()">➕ Nuevo Hábito</button>
+                </div>
+                <div id="habits-list" class="habits-admin-list"></div>
+
+                <!-- Habit Modal -->
+                <div id="habit-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3 id="habit-modal-title">Nuevo Hábito</h3>
+                        <form id="habit-form" onsubmit="saveHabit(event)">
+                            <input type="hidden" id="ht-id" />
+                            <div class="form-grid">
+                                <div class="form-row"><label>Key</label><input type="text" id="ht-key" required
+                                        placeholder="sport" /></div>
+                                <div class="form-row"><label>Icono</label><input type="text" id="ht-icon"
+                                        placeholder="⚽" /></div>
+                            </div>
+                            <div class="form-row"><label>Nombre</label><input type="text" id="ht-name" required
+                                    placeholder="Actividad Física" /></div>
+                            <div class="form-row"><label>Descripción</label><input type="text" id="ht-desc"
+                                    placeholder="Breve descripción" /></div>
+                            <div class="form-row"><label>Motivación</label><input type="text" id="ht-motivation"
+                                    placeholder="¡Tú puedes!" /></div>
+                            <div class="form-grid">
+                                <div class="form-row"><label>Categoría</label><input type="text" id="ht-cat"
+                                        value="general" /></div>
+                                <div class="form-row"><label>Estrellas</label><input type="number" id="ht-stars"
+                                        value="1" min="1" /></div>
+                                <div class="form-row"><label>Orden</label><input type="number" id="ht-order"
+                                        value="0" /></div>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn-primary">Guardar</button>
+                                <button type="button" class="btn-outline"
+                                    onclick="closeModal('habit-modal')">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- MicroHabit Modal -->
+                <div id="micro-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3>Micro-Hábito</h3>
+                        <form id="micro-form" onsubmit="saveMicro(event)">
+                            <input type="hidden" id="mh-id" />
+                            <input type="hidden" id="mh-habit-id" />
+                            <div class="form-row"><label>Descripción</label><input type="text" id="mh-desc" required
+                                    placeholder="📖 Leer 15 minutos" /></div>
+                            <div class="form-row"><label>Orden</label><input type="number" id="mh-order" value="0" />
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn-primary">Guardar</button>
+                                <button type="button" class="btn-outline"
+                                    onclick="closeModal('micro-modal')">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== REWARDS ===== -->
+            <section id="sec-rewards" class="admin-section">
+                <h2>💰 Configuración de Recompensas</h2>
+                <div class="form-row">
+                    <label>Perfil</label>
+                    <select id="reward-profile-select" onchange="loadRewardTiers()"></select>
+                </div>
+                <h3>📊 Niveles de Recompensa Semanal</h3>
+                <div id="reward-tiers-list" class="tiers-list"></div>
+                <div class="section-actions">
+                    <button class="btn-outline" onclick="addTierRow()">➕ Agregar nivel</button>
+                    <button class="btn-primary" onclick="saveTiers()">💾 Guardar cambios</button>
+                </div>
+            </section>
+
+            <!-- ===== SETTINGS ===== -->
+            <section id="sec-settings" class="admin-section">
+                <h2>⚙️ Configuración Global</h2>
+                <form id="settings-form" onsubmit="saveSettings(event)">
+                    <div class="form-grid">
+                        <div class="form-row"><label>Símbolo de moneda</label><input type="text" id="set-currency"
+                                value="$" maxlength="5" /></div>
+                        <div class="form-row"><label>Nombre de la app</label><input type="text" id="set-app-name"
+                                value="HábitosFam" /></div>
+                        <div class="form-row"><label>Días para bonus racha</label><input type="number"
+                                id="set-streak-days" value="7" min="1" /></div>
+                        <div class="form-row"><label>% bonus racha (1.5=+50%)</label><input type="number"
+                                id="set-streak-pct" value="1.5" step="0.1" /></div>
+                    </div>
+                    <h3>🔐 Cambiar PIN Administrador</h3>
+                    <div class="form-row"><label>Nuevo PIN admin</label><input type="password" id="set-admin-pin"
+                            placeholder="(dejar vacío para no cambiar)" /></div>
+                    <div class="section-actions"><button type="submit" class="btn-primary">💾 Guardar
+                            Configuración</button></div>
+                </form>
+            </section>
+
+            <!-- ===== DATA ===== -->
+            <section id="sec-data" class="admin-section">
+                <h2>📊 Datos y Registros</h2>
+                <div class="form-row">
+                    <label>Perfil</label>
+                    <select id="data-profile-select" onchange="loadLogs()"></select>
+                </div>
+                <h3>📅 Registros diarios</h3>
+                <div id="logs-list" class="logs-table"></div>
+                <div class="section-actions">
+                    <a class="btn-outline" id="export-csv-link" href="#">📥 Exportar CSV</a>
+                    <button class="btn-outline danger" onclick="resetAllData()">🗑️ Borrar todos los datos</button>
+                </div>
+                <h3>🏥 Estado del Sistema</h3>
+                <div id="health-info" class="health-card"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HábitosFam 🌟 – Sistema Familiar de Buenos Hábitos</title>
+  <meta name="description"
+    content="Sistema gamificado de buenos hábitos para la familia. Checklists diarios, recompensas semanales y logros mensuales." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- ========== CONFETTI CANVAS ========== -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ========== PIN LOGIN OVERLAY ========== -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-box">
+      <div class="login-logo">🏠✨</div>
+      <h1>HábitosFam</h1>
+      <p class="login-subtitle">Ingresa tu PIN</p>
+      <div class="pin-inputs">
+        <input type="password" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+        <input type="password" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+        <input type="password" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+        <input type="password" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+      </div>
+      <div id="login-error" class="login-error"></div>
+      <button class="login-btn" onclick="submitLogin()">🔓 Ingresar</button>
+      <p class="login-hint">Alana: 1111 · Sofía: 2222 · Admin: 1234</p>
+    </div>
+  </div>
+
+  <!-- ========== APP CONTAINER ========== -->
+  <div id="app-container" class="hidden">
+
+    <!-- ========== HEADER ========== -->
+    <header class="app-header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">🏠✨</span>
+          <div>
+            <h1 id="app-title">HábitosFam</h1>
+            <p class="tagline">Pequeños pasos, grandes logros</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-date" id="header-date"></div>
+          <a href="/admin" id="admin-panel-link" class="admin-link-btn" style="display:none">⚙️ Admin</a>
+          <div id="user-role-badge" class="role-badge"></div>
+          <button class="logout-btn" onclick="logout()" title="Cerrar sesión">🚪</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========== TABS (dynamic) ========== -->
+    <nav class="tab-nav" id="tab-nav" role="tablist"></nav>
+
+    <!-- ========== MAIN ========== -->
+    <main class="app-main" id="app-main">
+
+      <!-- Profile sections will be dynamically generated here -->
+
+      <!-- ===== FAMILY SECTION (placeholder, rebuilt dynamically) ===== -->
+      <section id="profile-family" class="profile-section" data-profile="family"></section>
+
+    </main>
+
+    <!-- ========== CELEBRATION MODAL ========== -->
+    <div id="celebration-modal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-emoji" id="modal-emoji">🎉</div>
+        <h2 class="modal-title" id="modal-title">¡Increíble!</h2>
+        <p class="modal-msg" id="modal-msg">Has completado todos tus hábitos hoy.</p>
+        <div class="modal-stars" id="modal-stars"></div>
+        <button class="modal-close-btn" onclick="closeModal()">¡Genial! 🚀</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

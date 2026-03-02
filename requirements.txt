@@ -1,0 +1,38 @@
+# HábitosFam – Python Backend Dependencies
+# ==========================================
+# Core API framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# Database ORM – works with SQLite, PostgreSQL, MySQL
+sqlalchemy==2.0.37
+
+# Pydantic v2 for data validation (used by FastAPI)
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# SQLite async driver (for future async support)
+aiosqlite==0.20.0
+
+# PostgreSQL driver (for Supabase/PostgreSQL migration)
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+
+# MySQL driver (for MySQL migration)
+pymysql==1.1.1
+aiomysql==0.2.0
+
+# File uploads & form parsing
+python-multipart==0.0.20
+
+# Environment variables
+python-dotenv==1.0.1
+
+# CORS middleware
+# (included in fastapi, no extra install needed)
+
+# Date utilities
+python-dateutil==2.9.0
+
+# CSV/Excel export for admin panel
+openpyxl==3.1.5

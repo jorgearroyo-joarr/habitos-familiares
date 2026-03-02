@@ -1,0 +1,1 @@
+"""HábitosFam backend package."""
