@@ -30,3 +30,8 @@ brain/
 walkthrough.md
 implementation_plan.md
 task.md
+
+# Node/Vite (Frontend)
+node_modules/
+frontend/dist/
+frontend/.vite/
