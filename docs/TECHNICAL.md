@@ -9,13 +9,14 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   FRONTEND                          │
+│                   FRONTEND (Vite + TypeScript)      │
 │  /frontend:                                         │
 │  ├── index.html        (Root)                       │
 │  ├── admin.html        (Admin UI)                   │
-│  ├── /scripts: data.js, app.js, admin.js            │
-│  ├── /styles: styles.css, admin.css                 │
-│  └── /public: manifest.json, favicon.svg            │
+│  ├── /scripts/*.ts     (Lógica TypeScript tipada)   │
+│  ├── /styles/*.css     (Estilos base)               │
+│  ├── /public/          (PWA assets)                 │
+│  └── /dist/            (Build de producción Vite)   │
 └────────────────────┬────────────────────────────────┘
                      │ HTTP REST (fetch API)
 ┌────────────────────▼────────────────────────────────┐
@@ -246,14 +247,16 @@ Entrada       main.py              FastAPI app, startup, static files
 | **[PythonAnywhere](https://pythonanywhere.com)** | 1 app web gratis | Backend Python | Interfaz sencilla, incluye consola Python |
 | **[Supabase](https://supabase.com)** | DB PostgreSQL gratis | Solo base de datos | 500MB DB + Auth gratis, ideal como backend DB |
 
-### Opción recomendada: Render.com (⭐ más fácil)
+### Opción recomendada: Render.com (⭐ más fácil con `render.yaml`)
 
-1. Sube tu código a GitHub
-2. En [render.com](https://render.com) → New → Web Service
-3. Conecta tu repo, configura:
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-4. Deploy automático ✅
+El proyecto incluye un archivo `render.yaml` (Infrastructure as Code) que configura automáticamente el entorno "Full Stack" (Node.js + Python):
+
+1. Sube tu código a GitHub.
+2. En [render.com](https://render.com) → New → **Blueprint** (Infrastructure as Code).
+3. Conecta tu repositorio. Render leerá el esquema y configurará los comandos solitos:
+   - **Build**: Compilará el frontend con `npm run build` e instalará dependencias de Python con `pip`.
+   - **Start**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+4. Deploy automático configurado ✅
 
 > ⚠️ En Render gratuito, la instancia duerme tras 15min sin tráfico. El primer acceso tarda ~30s en despertar.  
 > Para datos persistentes, usa una URL de PostgreSQL (Supabase gratis) en `DATABASE_URL`.

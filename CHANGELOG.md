@@ -10,6 +10,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-03-15
+### Added
+*   **Vite + TypeScript Stack**: El frontend completo (`app.js`, `admin.js`, `data.js`) fue migrado a TypeScript (`.ts`) con tipado estricto e interfaces compartidas (`Profile`, `Habit`, `MicroHabit`).
+*   **Render Infrastructure as Code**: Nuevo archivo `render.yaml` para despliegue automático "Full Stack" en Render combinando la compilación de Vite (`npm run build`) y FastAPI.
+
+### Changed
+*   **Asset Serving**: Configuración de `backend/main.py` revertida para servir archivos estáticos compilados y ultra-bajos desde la carpeta `dist/` cuando se compila para producción.
+
+### Fixed
+*   **PIN Auto-advance (UX)**: Mejorada la fluidez del input de PIN. Ahora avanza de casilla automáticamente, permite borrar fluidamente y soporta pegar (Paste) el PIN completo.
+*   **Tests de IU Automatizados**: Creación de perfiles desde el panel de admin estabilizada.
+
 ## [2.3.1] - 2026-03-15
 ### Fixed
 - **CSS Loading** — Fixed CSS not loading by serving from `frontend/` source directory instead of `dist/`
