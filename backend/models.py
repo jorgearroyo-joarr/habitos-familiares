@@ -9,14 +9,22 @@ v3 additions:
   - AppSettings (global config singleton)
   - Profile: reward amounts, monthly config, currency
 """
+from datetime import datetime
+
 from sqlalchemy import (
-    Column, Integer, String, Float, Boolean,
-    DateTime, Text, ForeignKey, UniqueConstraint
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
-from datetime import datetime
-from .database import Base
 
+from .database import Base
 
 # ── Global settings (singleton row id=1) ──────────────────────
 

@@ -7,12 +7,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 
-from backend.database import Base
-from backend import models
+from alembic import context
+from sqlalchemy import engine_from_config, pool
+
 from backend.config import settings
+from backend.database import Base
 
 config = context.config
 if config.config_file_name is not None:

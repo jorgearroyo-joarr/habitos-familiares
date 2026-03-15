@@ -6,10 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from backend.main import app
-from backend.database import Base, get_db
 from backend.crud import seed_default_data
-
+from backend.database import Base, get_db
+from backend.main import app
 
 # Test database
 TEST_DATABASE_URL = "sqlite:///:memory:"

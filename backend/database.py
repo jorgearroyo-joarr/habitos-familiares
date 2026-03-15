@@ -8,12 +8,14 @@ Change DATABASE_URL in .env to migrate between:
   - PostgreSQL:  postgresql://user:pass@host:5432/habitosfam
   - MySQL:       mysql+pymysql://user:pass@host:3306/habitosfam
 """
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy.pool import StaticPool
-from typing import Generator
-from .config import settings
 import logging
+from typing import Generator
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from .config import settings
 
 logger = logging.getLogger(__name__)
 

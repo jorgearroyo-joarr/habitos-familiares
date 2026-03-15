@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- X:\Data\mega\familia.arroyo.rivera@outlook.com\Family\habitos-familiares\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: X:\Data\mega\familia.arroyo.rivera@outlook.com\Family\habitos-familiares
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 6 items
+
+backend/tests/test_functional.py::test_public_health PASSED              [ 16%]
+backend/tests/test_functional.py::test_login_flow PASSED                 [ 33%]
+backend/tests/test_functional.py::test_fetch_profiles PASSED             [ 50%]
+backend/tests/test_unit.py::test_pin_hashing PASSED                      [ 66%]
+backend/tests/test_unit.py::test_verify_pin_admin PASSED                 [ 83%]
+backend/tests/test_unit.py::test_create_and_get_profile PASSED           [100%]
+
+============================== 6 passed in 2.13s ==============================

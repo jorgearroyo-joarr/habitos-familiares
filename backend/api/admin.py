@@ -7,15 +7,16 @@ All protected by admin PIN header.
 
 import csv
 import io
-from fastapi import APIRouter, Depends, HTTPException, Header
+from typing import Any
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import List, Optional
 
-from ..database import get_db
+from .. import crud, models, schemas
 from ..config import settings
-from .. import crud, schemas, models
+from ..database import get_db
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -24,8 +25,8 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
 def _verify_admin(
-    x_admin_pin: Optional[str] = Header(None), db: Session = Depends(get_db)
-):
+    x_admin_pin: str | None = Header(None), db: Session = Depends(get_db)
+) -> bool:
     """Verify admin PIN from X-Admin-Pin header."""
     if not x_admin_pin:
         raise HTTPException(status_code=401, detail="Se requiere PIN de administrador")
@@ -39,7 +40,7 @@ def _verify_admin(
 
 
 @router.post("/login")
-def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
+def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)) -> dict[str, Any]:
     result = crud.verify_pin(db, payload.pin)
     if not result or result["role"] != "admin":
         raise HTTPException(status_code=401, detail="PIN de administrador inválido")
@@ -51,7 +52,7 @@ def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
 
 
 @router.get("/settings", response_model=schemas.AppSettingsOut)
-def get_settings(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+def get_settings(db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)) -> Any:
     return crud.get_app_settings(db)
 
 
@@ -59,16 +60,16 @@ def get_settings(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
 def update_settings(
     data: schemas.AppSettingsUpdate,
     db: Session = Depends(get_db),
-    auth=Depends(_verify_admin),
-):
+    auth: bool = Depends(_verify_admin),
+) -> Any:
     return crud.update_app_settings(db, data)
 
 
 # ── Profile CRUD ──────────────────────────────────────────────
 
 
-@router.get("/profiles", response_model=List[schemas.ProfileOut])
-def admin_list_profiles(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+@router.get("/profiles", response_model=list[schemas.ProfileOut])
+def admin_list_profiles(db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)) -> list[schemas.ProfileOut]:
     profiles = crud.get_all_profiles(db)
     result = []
     for p in profiles:
@@ -82,8 +83,8 @@ def admin_list_profiles(db: Session = Depends(get_db), auth=Depends(_verify_admi
 def admin_create_profile(
     data: schemas.ProfileCreate,
     db: Session = Depends(get_db),
-    auth=Depends(_verify_admin),
-):
+    auth: bool = Depends(_verify_admin),
+) -> schemas.ProfileOut:
     existing = crud.get_profile_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
@@ -100,8 +101,8 @@ def admin_update_profile(
     slug: str,
     data: schemas.ProfileUpdate,
     db: Session = Depends(get_db),
-    auth=Depends(_verify_admin),
-):
+    auth: bool = Depends(_verify_admin),
+) -> schemas.ProfileOut:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail="Perfil no encontrado")
@@ -113,8 +114,8 @@ def admin_update_profile(
 
 @router.delete("/profiles/{slug}")
 def admin_delete_profile(
-    slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
-):
+    slug: str, db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)
+) -> dict[str, str]:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail="Perfil no encontrado")
@@ -125,7 +126,7 @@ def admin_delete_profile(
 # ── Habit Template CRUD ───────────────────────────────────────
 
 
-@router.get("/profiles/{slug}/habits", response_model=List[schemas.HabitTemplateOut])
+@router.get("/profiles/{slug}/habits", response_model=list[schemas.HabitTemplateOut])
 def admin_list_habits(
     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
 ):
@@ -227,7 +228,7 @@ class HabitReorderItem(BaseModel):
 
 
 class HabitReorderList(BaseModel):
-    orders: List[HabitReorderItem]
+    orders: list[HabitReorderItem]
 
 
 @router.post("/profiles/{slug}/habits/reorder")
@@ -254,7 +255,7 @@ def reorder_habits(
 # ── Reward Tier CRUD ─────────────────────────────────────────
 
 
-@router.get("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+@router.get("/profiles/{slug}/reward-tiers", response_model=list[schemas.RewardTierOut])
 def admin_list_tiers(
     slug: str,
     tier_type: str = "weekly",
@@ -267,10 +268,10 @@ def admin_list_tiers(
     return crud.get_reward_tiers(db, profile.id, tier_type)
 
 
-@router.put("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+@router.put("/profiles/{slug}/reward-tiers", response_model=list[schemas.RewardTierOut])
 def admin_upsert_tiers(
     slug: str,
-    tiers: List[schemas.RewardTierCreate],
+    tiers: list[schemas.RewardTierCreate],
     db: Session = Depends(get_db),
     auth=Depends(_verify_admin),
 ):

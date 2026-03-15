@@ -10,17 +10,21 @@
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   FRONTEND                          │
-│  index.html + styles.css + data.js + app.js         │
-│  admin.html + admin.css + admin.js                  │
-│  (HTML/CSS/JS vanilla, sin frameworks)              │
+│  /frontend:                                         │
+│  ├── index.html        (Root)                       │
+│  ├── admin.html        (Admin UI)                   │
+│  ├── /scripts: data.js, app.js, admin.js            │
+│  ├── /styles: styles.css, admin.css                 │
+│  └── /public: manifest.json, favicon.svg            │
 └────────────────────┬────────────────────────────────┘
                      │ HTTP REST (fetch API)
 ┌────────────────────▼────────────────────────────────┐
 │                   BACKEND                           │
-│  FastAPI (Python 3.14)                              │
-│  ├── /api/profiles/*    → habits.py                 │
-│  ├── /api/admin/*       → admin.py (PIN auth)       │
-│  └── /* (static files)                              │
+│  FastAPI (Python 3.14 + Type Hints)                 │
+│  ├── /api/habits.py (Public REST)                   │
+│  ├── /api/admin.py  (Admin CRUD)                    │
+│  ├── /tests/        (Unit & Functional)             │
+│  └── /main.py       (Startup & Static Serving)       │
 └────────────────────┬────────────────────────────────┘
                      │ SQLAlchemy ORM
 ┌────────────────────▼────────────────────────────────┐

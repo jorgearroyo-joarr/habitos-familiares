@@ -10,6 +10,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-03-15
+### Added
+- Comprehensive Architectural Justification document (`docs/ARCHITECTURE.md`).
+- Core Use Cases documentation (`docs/USE_CASES.md`).
+- Backend Testing Suite (Unit and Functional tests using `pytest`).
+- Quality Gate enforcement with `ruff` and `mypy`.
+- Automated testing design document (`docs/TESTING_DESIGN.md`).
+
 ## [2.2.0] - 2026-03-15
 
 ### Added

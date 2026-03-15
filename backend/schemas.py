@@ -3,10 +3,9 @@ HábitosFam – backend/schemas.py  (v3)
 Pydantic v2 schemas for request/response validation.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Dict, List
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, Field
 
 # ── Auth schemas ──────────────────────────────────────────────
 
@@ -18,7 +17,7 @@ class PinLoginIn(BaseModel):
 class PinLoginOut(BaseModel):
     success: bool
     role: str  # 'admin' | 'user'
-    profile_slug: Optional[str] = None
+    profile_slug: str | None = None
     token: str
 
 
@@ -34,11 +33,11 @@ class AppSettingsOut(BaseModel):
 
 
 class AppSettingsUpdate(BaseModel):
-    admin_pin: Optional[str] = None  # raw PIN, will be hashed
-    currency_symbol: Optional[str] = None
-    app_name: Optional[str] = None
-    streak_bonus_days: Optional[int] = None
-    streak_bonus_pct: Optional[float] = None
+    admin_pin: str | None = None  # raw PIN, will be hashed
+    currency_symbol: str | None = None
+    app_name: str | None = None
+    streak_bonus_days: int | None = None
+    streak_bonus_pct: float | None = None
 
 
 # ── Profile schemas ──────────────────────────────────────────
@@ -53,7 +52,7 @@ class ProfileBase(BaseModel):
 
 
 class ProfileCreate(ProfileBase):
-    pin: Optional[str] = None  # raw PIN
+    pin: str | None = None  # raw PIN
     weekly_reward_base: float = 2.0
     weekly_reward_full: float = 4.0
     monthly_reward_desc: str = "Actividad especial 🎪"
@@ -61,17 +60,17 @@ class ProfileCreate(ProfileBase):
 
 
 class ProfileUpdate(BaseModel):
-    name: Optional[str] = None
-    age: Optional[int] = None
-    avatar: Optional[str] = None
-    theme: Optional[str] = None
-    level_idx: Optional[int] = None
-    is_active: Optional[bool] = None
-    pin: Optional[str] = None  # raw PIN
-    weekly_reward_base: Optional[float] = None
-    weekly_reward_full: Optional[float] = None
-    monthly_reward_desc: Optional[str] = None
-    monthly_min_pct: Optional[float] = None
+    name: str | None = None
+    age: int | None = None
+    avatar: str | None = None
+    theme: str | None = None
+    level_idx: int | None = None
+    is_active: bool | None = None
+    pin: str | None = None  # raw PIN
+    weekly_reward_base: float | None = None
+    weekly_reward_full: float | None = None
+    monthly_reward_desc: str | None = None
+    monthly_min_pct: float | None = None
 
 
 class ProfileOut(ProfileBase):
@@ -104,9 +103,9 @@ class MicroHabitCreate(BaseModel):
 
 
 class MicroHabitUpdate(BaseModel):
-    description: Optional[str] = None
-    sort_order: Optional[int] = None
-    is_active: Optional[bool] = None
+    description: str | None = None
+    sort_order: int | None = None
+    is_active: bool | None = None
 
 
 class HabitTemplateOut(BaseModel):
@@ -122,7 +121,7 @@ class HabitTemplateOut(BaseModel):
     motivation: str
     sort_order: int
     is_active: bool
-    micro_habits: List[MicroHabitOut] = []
+    micro_habits: list[MicroHabitOut] = []
 
 
 class HabitTemplateCreate(BaseModel):
@@ -135,19 +134,19 @@ class HabitTemplateCreate(BaseModel):
     details: str = ""
     motivation: str = ""
     sort_order: int = 0
-    micro_habits: List[MicroHabitCreate] = []
+    micro_habits: list[MicroHabitCreate] = []
 
 
 class HabitTemplateUpdate(BaseModel):
-    name: Optional[str] = None
-    icon: Optional[str] = None
-    category: Optional[str] = None
-    stars: Optional[int] = None
-    description: Optional[str] = None
-    details: Optional[str] = None
-    motivation: Optional[str] = None
-    sort_order: Optional[int] = None
-    is_active: Optional[bool] = None
+    name: str | None = None
+    icon: str | None = None
+    category: str | None = None
+    stars: int | None = None
+    description: str | None = None
+    details: str | None = None
+    motivation: str | None = None
+    sort_order: int | None = None
+    is_active: bool | None = None
 
 
 # ── RewardTier schemas ───────────────────────────────────────
@@ -174,11 +173,11 @@ class RewardTierCreate(BaseModel):
 
 
 class RewardTierUpdate(BaseModel):
-    min_pct: Optional[float] = None
-    multiplier: Optional[float] = None
-    label: Optional[str] = None
-    emoji: Optional[str] = None
-    sort_order: Optional[int] = None
+    min_pct: float | None = None
+    multiplier: float | None = None
+    label: str | None = None
+    emoji: str | None = None
+    sort_order: int | None = None
 
 
 # ── HabitEntry schemas ───────────────────────────────────────
@@ -187,7 +186,7 @@ class RewardTierUpdate(BaseModel):
 class HabitEntryIn(BaseModel):
     habit_id: str
     done: bool
-    mini_tasks: Dict[str, bool] = Field(default_factory=dict)
+    mini_tasks: dict[str, bool] = Field(default_factory=dict)
 
 
 class HabitEntryOut(BaseModel):
@@ -203,7 +202,7 @@ class HabitEntryOut(BaseModel):
 
 class DayLogIn(BaseModel):
     date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
-    habits: List[HabitEntryIn] = Field(default_factory=list)
+    habits: list[HabitEntryIn] = Field(default_factory=list)
 
 
 class DayCompleteIn(BaseModel):
@@ -223,7 +222,7 @@ class DayLogOut(BaseModel):
     pct: float
     day_done: bool
     bonus_star: bool
-    habit_entries: List[HabitEntryOut] = []
+    habit_entries: list[HabitEntryOut] = []
     created_at: datetime
 
 
@@ -240,7 +239,7 @@ class WeekStatsOut(BaseModel):
     streak: int
     earned_amount: float
     currency: str = "$"
-    day_logs: List[DayLogOut] = []
+    day_logs: list[DayLogOut] = []
 
 
 class MonthStatsOut(BaseModel):
@@ -267,12 +266,12 @@ class WeekRewardOut(BaseModel):
     total_pct: float
     earned_amount: float
     reward_paid: bool
-    notes: Optional[str]
+    notes: str | None
     created_at: datetime
 
 
 class RewardMarkPaid(BaseModel):
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 # ── Health / Admin ───────────────────────────────────────────
@@ -312,7 +311,7 @@ class ProfileDashboardOut(BaseModel):
     profile_name: str
     overall_pct: float
     total_active_days: int
-    habits: List[HabitDashboardItem] = []
+    habits: list[HabitDashboardItem] = []
 
 
 # ── Charts / Analytics ─────────────────────────────────────────
@@ -328,10 +327,10 @@ class TrendDataPoint(BaseModel):
 class TrendResponse(BaseModel):
     profile_slug: str
     period: str  # 'weekly' | 'monthly' | 'yearly'
-    data: List[TrendDataPoint]
+    data: list[TrendDataPoint]
     average_pct: float
-    best_day: Optional[str] = None
-    improvement: Optional[float] = None  # pct change vs previous period
+    best_day: str | None = None
+    improvement: float | None = None  # pct change vs previous period
 
 
 # ── Habit Templates (Predefined) ───────────────────────────────
@@ -341,11 +340,11 @@ class HabitTemplateCategory(BaseModel):
     category: str
     description: str
     age_range: str
-    habits: List[HabitTemplateCreate] = []
+    habits: list[HabitTemplateCreate] = []
 
 
 class HabitTemplatesCatalog(BaseModel):
-    categories: List[HabitTemplateCategory]
+    categories: list[HabitTemplateCategory]
 
 
 # ── Month Auto-Close ───────────────────────────────────────────

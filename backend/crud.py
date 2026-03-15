@@ -4,30 +4,27 @@ Database CRUD operations.
 All DB access goes through this module.
 """
 
-import json
 import hashlib
-from datetime import datetime, date, timedelta
-from typing import Optional, List
+import json
+from datetime import date, datetime, timedelta
 
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import backup, models, schemas
 from .config import settings
 from .data_config import (
-    _hash_pin,
     DEFAULT_ADMIN_PIN,
-    PROFILE_TEMPLATES,
-    HABIT_TEMPLATES,
     DEFAULT_WEEKLY_TIERS,
+    HABIT_TEMPLATES,
+    PROFILE_TEMPLATES,
+    _hash_pin,
 )
-from . import backup
-
 
 # ── PIN Auth ──────────────────────────────────────────────────
 
 
-def verify_pin(db: Session, pin: str) -> Optional[dict]:
+def verify_pin(db: Session, pin: str) -> dict | None:
     """
     Verify a PIN. Returns:
       {'role': 'admin', 'profile_slug': None}   if admin PIN
@@ -57,19 +54,20 @@ def verify_pin(db: Session, pin: str) -> Optional[dict]:
 
 
 def generate_token(pin: str) -> str:
-    return hashlib.sha256(f"{pin}{settings.secret_key}".encode()).hexdigest()[:32]
+    h = hashlib.sha256(f"{pin}{settings.secret_key}".encode()).hexdigest()[:32]
+    return f"{settings.token_prefix}{h}"
 
 
 # ── AppSettings ───────────────────────────────────────────────
 
 
-def get_app_settings(db: Session) -> models.AppSettings:
+def get_app_settings(db: Session) -> models.AppSettings | None:
     return db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
 
 
 def update_app_settings(
     db: Session, data: schemas.AppSettingsUpdate
-) -> Optional[models.AppSettings]:
+) -> models.AppSettings | None:
     cfg = get_app_settings(db)
     if not cfg:
         return None
@@ -265,7 +263,7 @@ def get_reward_tiers(db: Session, profile_id: int, tier_type: str = "weekly"):
 
 
 def upsert_reward_tiers(
-    db: Session, profile_id: int, tiers: List[schemas.RewardTierCreate]
+    db: Session, profile_id: int, tiers: list[schemas.RewardTierCreate]
 ):
     # Delete existing tiers for this type
     tier_type = tiers[0].tier_type if tiers else "weekly"
@@ -305,7 +303,7 @@ def get_day_log(db: Session, profile_id: int, date_str: str):
 
 
 def upsert_day_log(
-    db: Session, profile_id: int, date_str: str, habits_data: List[schemas.HabitEntryIn]
+    db: Session, profile_id: int, date_str: str, habits_data: list[schemas.HabitEntryIn]
 ):
     log = get_day_log(db, profile_id, date_str)
     if not log:
@@ -439,7 +437,7 @@ def compute_streak(db: Session, profile_id: int) -> int:
 # ── Week stats (uses DB reward tiers) ────────────────────────
 
 
-def get_week_dates(reference: Optional[date] = None):
+def get_week_dates(reference: date | None = None):
     ref = reference or date.today()
     monday = ref - timedelta(days=ref.weekday())
     dates = [(monday + timedelta(days=i)).isoformat() for i in range(7)]
@@ -447,7 +445,7 @@ def get_week_dates(reference: Optional[date] = None):
 
 
 def compute_week_stats(
-    db: Session, profile: models.Profile, week_start: Optional[str] = None
+    db: Session, profile: models.Profile, week_start: str | None = None
 ):
     if week_start:
         from datetime import date as d
@@ -544,7 +542,7 @@ def close_week(db: Session, profile: models.Profile, week_start: str):
     return reward
 
 
-def mark_reward_paid(db: Session, reward: models.WeekReward, notes: Optional[str]):
+def mark_reward_paid(db: Session, reward: models.WeekReward, notes: str | None):
     reward.reward_paid = True
     if notes:
         reward.notes = notes
@@ -557,7 +555,7 @@ def mark_reward_paid(db: Session, reward: models.WeekReward, notes: Optional[str
 
 
 def compute_month_stats(
-    db: Session, profile: models.Profile, month_key: Optional[str] = None
+    db: Session, profile: models.Profile, month_key: str | None = None
 ):
     if not month_key:
         month_key = date.today().strftime("%Y-%m")

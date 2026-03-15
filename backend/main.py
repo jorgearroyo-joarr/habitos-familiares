@@ -10,12 +10,12 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
+from .api import admin, habits
 from .config import settings
 from .database import create_tables
-from .api import habits, admin
 
 # ── Logging ────────────────────────────────────────────────────
 logging.basicConfig(
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     print("DEBUG: Entering lifespan", flush=True)
     logger.info("🚀 HábitosFam v3 starting up (%s)", settings.db_engine_type)
     sys.stdout.flush()
-    
+
     try:
         logger.info("📡 Initializing database tables...")
         sys.stdout.flush()
@@ -42,14 +42,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("❌ FAILED to create tables: %s", e, exc_info=True)
         sys.stdout.flush()
-        # We don't re-raise here to allow the app to at least start 
+        # We don't re-raise here to allow the app to at least start
         # so we can see the logs on Render before it crashes/restarts.
         # But actually, it's better to let it fail so we know.
         raise
 
     # Auto-seed default profiles, habits, micro-habits, reward tiers
-    from .database import SessionLocal
     from . import crud
+    from .database import SessionLocal
     db = SessionLocal()
     try:
         crud.seed_default_data(db)
@@ -97,7 +97,8 @@ def public_health():
 
 
 # ── Static files (serve frontend from project root) ─────────────
-STATIC_DIR = Path(__file__).parent.parent   # good_habits/
+STATIC_DIR = Path(__file__).parent.parent / "frontend"
+print(f"DEBUG: STATIC_DIR={STATIC_DIR.absolute()}", flush=True)
 
 # Mount admin page
 @app.get("/admin", include_in_schema=False)

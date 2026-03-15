@@ -4,10 +4,11 @@ Automatic database backup module.
 Creates backups before critical operations (reset, profile deletion, etc.)
 """
 
-import shutil
 import logging
+import shutil
 from datetime import datetime
 from pathlib import Path
+
 from .config import settings
 
 logger = logging.getLogger(__name__)

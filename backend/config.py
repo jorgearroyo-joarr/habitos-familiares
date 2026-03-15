@@ -3,8 +3,8 @@ HábitosFam – backend/config.py
 Application settings via pydantic-settings + python-dotenv.
 Supports SQLite, PostgreSQL (Supabase), and MySQL.
 """
+
 from pydantic_settings import BaseSettings
-from typing import List
 
 
 class Settings(BaseSettings):
@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     # ── Admin ─────────────────────────────────────
     admin_pin: str = "1234"
+    pin_length: int = 4
+    token_prefix: str = "HFAM-"
 
     # ── Database ──────────────────────────────────
     # Default: SQLite (local file)
@@ -29,7 +31,7 @@ class Settings(BaseSettings):
     port: int = 8765
 
     @property
-    def cors_origins_list(self) -> List[str]:
+    def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",")]
 
     @property
@@ -38,9 +40,9 @@ class Settings(BaseSettings):
         url = self.database_url.lower()
         if url.startswith("sqlite"):
             return "sqlite"
-        elif "postgresql" in url or "postgres" in url:
+        if "postgresql" in url or "postgres" in url:
             return "postgresql"
-        elif "mysql" in url:
+        if "mysql" in url:
             return "mysql"
         return "unknown"
 

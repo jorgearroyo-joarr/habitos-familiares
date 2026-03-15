@@ -1,0 +1,3532 @@
+warning: The following rules have been removed and ignoring them has no effect:
+    - ANN101
+    - ANN102
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\api\admin.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / import csv
+ 9 | | import io
+10 | | from fastapi import APIRouter, Depends, HTTPException, Header
+11 | | from fastapi.responses import StreamingResponse
+12 | | from pydantic import BaseModel
+13 | | from sqlalchemy.orm import Session
+14 | | from typing import List, Optional
+15 | |
+16 | | from ..database import get_db
+17 | | from ..config import settings
+18 | | from .. import crud, schemas, models
+   | |____________________________________^
+19 |
+20 |   router = APIRouter(prefix="/api/admin", tags=["admin"])
+   |
+help: Organize imports
+
+ANN202 Missing return type annotation for private function `_verify_admin`
+  --> backend\api\admin.py:26:5
+   |
+26 | def _verify_admin(
+   |     ^^^^^^^^^^^^^
+27 |     x_admin_pin: Optional[str] = Header(None), db: Session = Depends(get_db)
+28 | ):
+   |
+help: Add return type annotation: `bool`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\api\admin.py:27:18
+   |
+26 | def _verify_admin(
+27 |     x_admin_pin: Optional[str] = Header(None), db: Session = Depends(get_db)
+   |                  ^^^^^^^^^^^^^
+28 | ):
+29 |     """Verify admin PIN from X-Admin-Pin header."""
+   |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `admin_login`
+  --> backend\api\admin.py:42:5
+   |
+41 | @router.post("/login")
+42 | def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
+   |     ^^^^^^^^^^^
+43 |     result = crud.verify_pin(db, payload.pin)
+44 |     if not result or result["role"] != "admin":
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_settings`
+  --> backend\api\admin.py:54:5
+   |
+53 | @router.get("/settings", response_model=schemas.AppSettingsOut)
+54 | def get_settings(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+   |     ^^^^^^^^^^^^
+55 |     return crud.get_app_settings(db)
+   |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+  --> backend\api\admin.py:54:49
+   |
+53 | @router.get("/settings", response_model=schemas.AppSettingsOut)
+54 | def get_settings(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+   |                                                 ^^^^
+55 |     return crud.get_app_settings(db)
+   |
+
+ANN201 Missing return type annotation for public function `update_settings`
+  --> backend\api\admin.py:59:5
+   |
+58 | @router.put("/settings", response_model=schemas.AppSettingsOut)
+59 | def update_settings(
+   |     ^^^^^^^^^^^^^^^
+60 |     data: schemas.AppSettingsUpdate,
+61 |     db: Session = Depends(get_db),
+   |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+  --> backend\api\admin.py:62:5
+   |
+60 |     data: schemas.AppSettingsUpdate,
+61 |     db: Session = Depends(get_db),
+62 |     auth=Depends(_verify_admin),
+   |     ^^^^
+63 | ):
+64 |     return crud.update_app_settings(db, data)
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> backend\api\admin.py:70:41
+   |
+70 | @router.get("/profiles", response_model=List[schemas.ProfileOut])
+   |                                         ^^^^
+71 | def admin_list_profiles(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+72 |     profiles = crud.get_all_profiles(db)
+   |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `admin_list_profiles`
+  --> backend\api\admin.py:71:5
+   |
+70 | @router.get("/profiles", response_model=List[schemas.ProfileOut])
+71 | def admin_list_profiles(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+   |     ^^^^^^^^^^^^^^^^^^^
+72 |     profiles = crud.get_all_profiles(db)
+73 |     result = []
+   |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+  --> backend\api\admin.py:71:56
+   |
+70 | @router.get("/profiles", response_model=List[schemas.ProfileOut])
+71 | def admin_list_profiles(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+   |                                                        ^^^^
+72 |     profiles = crud.get_all_profiles(db)
+73 |     result = []
+   |
+
+ANN201 Missing return type annotation for public function `admin_create_profile`
+  --> backend\api\admin.py:82:5
+   |
+81 | @router.post("/profiles", response_model=schemas.ProfileOut, status_code=201)
+82 | def admin_create_profile(
+   |     ^^^^^^^^^^^^^^^^^^^^
+83 |     data: schemas.ProfileCreate,
+84 |     db: Session = Depends(get_db),
+   |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+  --> backend\api\admin.py:85:5
+   |
+83 |     data: schemas.ProfileCreate,
+84 |     db: Session = Depends(get_db),
+85 |     auth=Depends(_verify_admin),
+   |     ^^^^
+86 | ):
+87 |     existing = crud.get_profile_by_slug(db, data.slug)
+   |
+
+ANN201 Missing return type annotation for public function `admin_update_profile`
+   --> backend\api\admin.py:99:5
+    |
+ 98 | @router.patch("/profiles/{slug}", response_model=schemas.ProfileOut)
+ 99 | def admin_update_profile(
+    |     ^^^^^^^^^^^^^^^^^^^^
+100 |     slug: str,
+101 |     data: schemas.ProfileUpdate,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:103:5
+    |
+101 |     data: schemas.ProfileUpdate,
+102 |     db: Session = Depends(get_db),
+103 |     auth=Depends(_verify_admin),
+    |     ^^^^
+104 | ):
+105 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `admin_delete_profile`
+   --> backend\api\admin.py:115:5
+    |
+114 | @router.delete("/profiles/{slug}")
+115 | def admin_delete_profile(
+    |     ^^^^^^^^^^^^^^^^^^^^
+116 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+117 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:116:47
+    |
+114 | @router.delete("/profiles/{slug}")
+115 | def admin_delete_profile(
+116 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                               ^^^^
+117 | ):
+118 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\api\admin.py:128:55
+    |
+128 | @router.get("/profiles/{slug}/habits", response_model=List[schemas.HabitTemplateOut])
+    |                                                       ^^^^
+129 | def admin_list_habits(
+130 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `admin_list_habits`
+   --> backend\api\admin.py:129:5
+    |
+128 | @router.get("/profiles/{slug}/habits", response_model=List[schemas.HabitTemplateOut])
+129 | def admin_list_habits(
+    |     ^^^^^^^^^^^^^^^^^
+130 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+131 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:130:47
+    |
+128 | @router.get("/profiles/{slug}/habits", response_model=List[schemas.HabitTemplateOut])
+129 | def admin_list_habits(
+130 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                               ^^^^
+131 | ):
+132 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `admin_create_habit`
+   --> backend\api\admin.py:141:5
+    |
+139 |     "/profiles/{slug}/habits", response_model=schemas.HabitTemplateOut, status_code=201
+140 | )
+141 | def admin_create_habit(
+    |     ^^^^^^^^^^^^^^^^^^
+142 |     slug: str,
+143 |     data: schemas.HabitTemplateCreate,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:145:5
+    |
+143 |     data: schemas.HabitTemplateCreate,
+144 |     db: Session = Depends(get_db),
+145 |     auth=Depends(_verify_admin),
+    |     ^^^^
+146 | ):
+147 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `admin_update_habit`
+   --> backend\api\admin.py:154:5
+    |
+153 | @router.patch("/habits/{habit_id}", response_model=schemas.HabitTemplateOut)
+154 | def admin_update_habit(
+    |     ^^^^^^^^^^^^^^^^^^
+155 |     habit_id: int,
+156 |     data: schemas.HabitTemplateUpdate,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:158:5
+    |
+156 |     data: schemas.HabitTemplateUpdate,
+157 |     db: Session = Depends(get_db),
+158 |     auth=Depends(_verify_admin),
+    |     ^^^^
+159 | ):
+160 |     tpl = crud.get_habit_template(db, habit_id)
+    |
+
+ANN201 Missing return type annotation for public function `admin_delete_habit`
+   --> backend\api\admin.py:167:5
+    |
+166 | @router.delete("/habits/{habit_id}")
+167 | def admin_delete_habit(
+    |     ^^^^^^^^^^^^^^^^^^
+168 |     habit_id: int, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+169 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:168:51
+    |
+166 | @router.delete("/habits/{habit_id}")
+167 | def admin_delete_habit(
+168 |     habit_id: int, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                                   ^^^^
+169 | ):
+170 |     tpl = crud.get_habit_template(db, habit_id)
+    |
+
+ANN201 Missing return type annotation for public function `admin_create_micro`
+   --> backend\api\admin.py:185:5
+    |
+183 |     status_code=201,
+184 | )
+185 | def admin_create_micro(
+    |     ^^^^^^^^^^^^^^^^^^
+186 |     habit_id: int,
+187 |     data: schemas.MicroHabitCreate,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:189:5
+    |
+187 |     data: schemas.MicroHabitCreate,
+188 |     db: Session = Depends(get_db),
+189 |     auth=Depends(_verify_admin),
+    |     ^^^^
+190 | ):
+191 |     tpl = crud.get_habit_template(db, habit_id)
+    |
+
+ANN201 Missing return type annotation for public function `admin_update_micro`
+   --> backend\api\admin.py:198:5
+    |
+197 | @router.patch("/micro-habits/{micro_id}", response_model=schemas.MicroHabitOut)
+198 | def admin_update_micro(
+    |     ^^^^^^^^^^^^^^^^^^
+199 |     micro_id: int,
+200 |     data: schemas.MicroHabitUpdate,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:202:5
+    |
+200 |     data: schemas.MicroHabitUpdate,
+201 |     db: Session = Depends(get_db),
+202 |     auth=Depends(_verify_admin),
+    |     ^^^^
+203 | ):
+204 |     mh = db.query(models.MicroHabit).filter(models.MicroHabit.id == micro_id).first()
+    |
+
+ANN201 Missing return type annotation for public function `admin_delete_micro`
+   --> backend\api\admin.py:211:5
+    |
+210 | @router.delete("/micro-habits/{micro_id}")
+211 | def admin_delete_micro(
+    |     ^^^^^^^^^^^^^^^^^^
+212 |     micro_id: int, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+213 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:212:51
+    |
+210 | @router.delete("/micro-habits/{micro_id}")
+211 | def admin_delete_micro(
+212 |     micro_id: int, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                                   ^^^^
+213 | ):
+214 |     mh = db.query(models.MicroHabit).filter(models.MicroHabit.id == micro_id).first()
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\api\admin.py:230:13
+    |
+229 | class HabitReorderList(BaseModel):
+230 |     orders: List[HabitReorderItem]
+    |             ^^^^
+    |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `reorder_habits`
+   --> backend\api\admin.py:234:5
+    |
+233 | @router.post("/profiles/{slug}/habits/reorder")
+234 | def reorder_habits(
+    |     ^^^^^^^^^^^^^^
+235 |     slug: str,
+236 |     data: HabitReorderList,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:238:5
+    |
+236 |     data: HabitReorderList,
+237 |     db: Session = Depends(get_db),
+238 |     auth=Depends(_verify_admin),
+    |     ^^^^
+239 | ):
+240 |     """Reorder habits via drag and drop."""
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\api\admin.py:257:61
+    |
+257 | @router.get("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+    |                                                             ^^^^
+258 | def admin_list_tiers(
+259 |     slug: str,
+    |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `admin_list_tiers`
+   --> backend\api\admin.py:258:5
+    |
+257 | @router.get("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+258 | def admin_list_tiers(
+    |     ^^^^^^^^^^^^^^^^
+259 |     slug: str,
+260 |     tier_type: str = "weekly",
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:262:5
+    |
+260 |     tier_type: str = "weekly",
+261 |     db: Session = Depends(get_db),
+262 |     auth=Depends(_verify_admin),
+    |     ^^^^
+263 | ):
+264 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\api\admin.py:270:61
+    |
+270 | @router.put("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+    |                                                             ^^^^
+271 | def admin_upsert_tiers(
+272 |     slug: str,
+    |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `admin_upsert_tiers`
+   --> backend\api\admin.py:271:5
+    |
+270 | @router.put("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+271 | def admin_upsert_tiers(
+    |     ^^^^^^^^^^^^^^^^^^
+272 |     slug: str,
+273 |     tiers: List[schemas.RewardTierCreate],
+    |
+help: Add return type annotation
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\api\admin.py:273:12
+    |
+271 | def admin_upsert_tiers(
+272 |     slug: str,
+273 |     tiers: List[schemas.RewardTierCreate],
+    |            ^^^^
+274 |     db: Session = Depends(get_db),
+275 |     auth=Depends(_verify_admin),
+    |
+help: Replace with `list`
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:275:5
+    |
+273 |     tiers: List[schemas.RewardTierCreate],
+274 |     db: Session = Depends(get_db),
+275 |     auth=Depends(_verify_admin),
+    |     ^^^^
+276 | ):
+277 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `admin_get_logs`
+   --> backend\api\admin.py:287:5
+    |
+286 | @router.get("/profiles/{slug}/logs")
+287 | def admin_get_logs(
+    |     ^^^^^^^^^^^^^^
+288 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+289 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:288:47
+    |
+286 | @router.get("/profiles/{slug}/logs")
+287 | def admin_get_logs(
+288 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                               ^^^^
+289 | ):
+290 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `admin_get_rewards`
+   --> backend\api\admin.py:297:5
+    |
+296 | @router.get("/profiles/{slug}/rewards")
+297 | def admin_get_rewards(
+    |     ^^^^^^^^^^^^^^^^^
+298 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+299 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:298:47
+    |
+296 | @router.get("/profiles/{slug}/rewards")
+297 | def admin_get_rewards(
+298 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                               ^^^^
+299 | ):
+300 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `admin_close_week`
+   --> backend\api\admin.py:312:5
+    |
+311 | @router.post("/profiles/{slug}/close-week")
+312 | def admin_close_week(
+    |     ^^^^^^^^^^^^^^^^
+313 |     slug: str,
+314 |     week_start: str,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:316:5
+    |
+314 |     week_start: str,
+315 |     db: Session = Depends(get_db),
+316 |     auth=Depends(_verify_admin),
+    |     ^^^^
+317 | ):
+318 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `mark_reward_paid`
+   --> backend\api\admin.py:325:5
+    |
+324 | @router.post("/rewards/{reward_id}/mark-paid", response_model=schemas.WeekRewardOut)
+325 | def mark_reward_paid(
+    |     ^^^^^^^^^^^^^^^^
+326 |     reward_id: int,
+327 |     payload: schemas.RewardMarkPaid,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:329:5
+    |
+327 |     payload: schemas.RewardMarkPaid,
+328 |     db: Session = Depends(get_db),
+329 |     auth=Depends(_verify_admin),
+    |     ^^^^
+330 | ):
+331 |     reward = (
+    |
+
+ANN201 Missing return type annotation for public function `admin_delete_log`
+   --> backend\api\admin.py:340:5
+    |
+339 | @router.delete("/profiles/{slug}/logs/{date_str}")
+340 | def admin_delete_log(
+    |     ^^^^^^^^^^^^^^^^
+341 |     slug: str, date_str: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+342 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:341:62
+    |
+339 | @router.delete("/profiles/{slug}/logs/{date_str}")
+340 | def admin_delete_log(
+341 |     slug: str, date_str: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                                              ^^^^
+342 | ):
+343 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+
+ANN201 Missing return type annotation for public function `health_check`
+   --> backend\api\admin.py:358:5
+    |
+357 | @router.get("/health", response_model=schemas.HealthOut)
+358 | def health_check(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |     ^^^^^^^^^^^^
+359 |     return crud.get_health(db, settings.database_url, settings.db_engine_type)
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:358:49
+    |
+357 | @router.get("/health", response_model=schemas.HealthOut)
+358 | def health_check(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |                                                 ^^^^
+359 |     return crud.get_health(db, settings.database_url, settings.db_engine_type)
+    |
+
+ANN201 Missing return type annotation for public function `seed_data`
+   --> backend\api\admin.py:363:5
+    |
+362 | @router.post("/seed", status_code=201)
+363 | def seed_data(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |     ^^^^^^^^^
+364 |     crud.seed_default_data(db)
+365 |     return {"message": "Default data seeded successfully"}
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:363:46
+    |
+362 | @router.post("/seed", status_code=201)
+363 | def seed_data(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |                                              ^^^^
+364 |     crud.seed_default_data(db)
+365 |     return {"message": "Default data seeded successfully"}
+    |
+
+ANN201 Missing return type annotation for public function `export_csv`
+   --> backend\api\admin.py:369:5
+    |
+368 | @router.get("/export/csv")
+369 | def export_csv(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |     ^^^^^^^^^^
+370 |     rows = crud.get_export_data(db)
+371 |     output = io.StringIO()
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:369:47
+    |
+368 | @router.get("/export/csv")
+369 | def export_csv(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |                                               ^^^^
+370 |     rows = crud.get_export_data(db)
+371 |     output = io.StringIO()
+    |
+
+ANN201 Missing return type annotation for public function `reset_all_data`
+   --> backend\api\admin.py:386:5
+    |
+385 | @router.post("/reset-all-data")
+386 | def reset_all_data(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |     ^^^^^^^^^^^^^^
+387 |     crud.reset_all_data(db)
+388 |     return {"message": "All log data has been reset"}
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:386:51
+    |
+385 | @router.post("/reset-all-data")
+386 | def reset_all_data(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    |                                                   ^^^^
+387 |     crud.reset_all_data(db)
+388 |     return {"message": "All log data has been reset"}
+    |
+
+ANN201 Missing return type annotation for public function `get_templates_catalog`
+   --> backend\api\admin.py:395:5
+    |
+394 | @router.get("/templates/catalog", response_model=schemas.HabitTemplatesCatalog)
+395 | def get_templates_catalog():
+    |     ^^^^^^^^^^^^^^^^^^^^^
+396 |     """Get predefined habit templates by category."""
+397 |     return crud.get_habit_templates_catalog()
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `close_month`
+   --> backend\api\admin.py:404:5
+    |
+403 | @router.post("/profiles/{slug}/close-month", response_model=schemas.MonthCloseResult)
+404 | def close_month(
+    |     ^^^^^^^^^^^
+405 |     slug: str,
+406 |     month_key: str,
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:408:5
+    |
+406 |     month_key: str,
+407 |     db: Session = Depends(get_db),
+408 |     auth=Depends(_verify_admin),
+    |     ^^^^
+409 | ):
+410 |     """Close a specific month and generate rewards."""
+    |
+
+ANN201 Missing return type annotation for public function `close_current_month`
+   --> backend\api\admin.py:420:5
+    |
+418 |     "/profiles/{slug}/close-current-month", response_model=schemas.MonthCloseResult
+419 | )
+420 | def close_current_month(
+    |     ^^^^^^^^^^^^^^^^^^^
+421 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+422 | ):
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `auth`
+   --> backend\api\admin.py:421:47
+    |
+419 | )
+420 | def close_current_month(
+421 |     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
+    |                                               ^^^^
+422 | ):
+423 |     """Close the current month."""
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\api\habits.py:6:1
+   |
+ 4 |   """
+ 5 |
+ 6 | / from fastapi import APIRouter, Depends, HTTPException
+ 7 | | from sqlalchemy.orm import Session
+ 8 | | from typing import List, Optional
+ 9 | | from datetime import date
+10 | |
+11 | | from ..database import get_db
+12 | | from .. import crud, schemas
+   | |____________________________^
+13 |
+14 |   router = APIRouter(prefix="/api", tags=["habits"])
+   |
+help: Organize imports
+
+ANN201 Missing return type annotation for public function `login`
+  --> backend\api\habits.py:21:5
+   |
+20 | @router.post("/auth/login", response_model=schemas.PinLoginOut)
+21 | def login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
+   |     ^^^^^
+22 |     """Unified login: returns role (admin/user) and profile scope."""
+23 |     result = crud.verify_pin(db, payload.pin)
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_settings`
+  --> backend\api\habits.py:39:5
+   |
+38 | @router.get("/settings", response_model=schemas.AppSettingsOut)
+39 | def get_settings(db: Session = Depends(get_db)):
+   |     ^^^^^^^^^^^^
+40 |     cfg = crud.get_app_settings(db)
+41 |     if not cfg:
+   |
+help: Add return type annotation
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> backend\api\habits.py:54:41
+   |
+54 | @router.get("/profiles", response_model=List[schemas.ProfileOut])
+   |                                         ^^^^
+55 | def list_profiles(db: Session = Depends(get_db)):
+56 |     profiles = crud.get_profiles(db)
+   |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `list_profiles`
+  --> backend\api\habits.py:55:5
+   |
+54 | @router.get("/profiles", response_model=List[schemas.ProfileOut])
+55 | def list_profiles(db: Session = Depends(get_db)):
+   |     ^^^^^^^^^^^^^
+56 |     profiles = crud.get_profiles(db)
+57 |     result = []
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_profile`
+  --> backend\api\habits.py:66:5
+   |
+65 | @router.get("/profiles/{slug}", response_model=schemas.ProfileOut)
+66 | def get_profile(slug: str, db: Session = Depends(get_db)):
+   |     ^^^^^^^^^^^
+67 |     profile = crud.get_profile_by_slug(db, slug)
+68 |     if not profile:
+   |
+help: Add return type annotation
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> backend\api\habits.py:79:54
+   |
+78 | @router.get(
+79 |     "/profiles/{slug}/habits-config", response_model=List[schemas.HabitTemplateOut]
+   |                                                      ^^^^
+80 | )
+81 | def get_habits_config(slug: str, db: Session = Depends(get_db)):
+   |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `get_habits_config`
+  --> backend\api\habits.py:81:5
+   |
+79 |     "/profiles/{slug}/habits-config", response_model=List[schemas.HabitTemplateOut]
+80 | )
+81 | def get_habits_config(slug: str, db: Session = Depends(get_db)):
+   |     ^^^^^^^^^^^^^^^^^
+82 |     """Get habit templates + micro-habits for a profile from DB."""
+83 |     profile = crud.get_profile_by_slug(db, slug)
+   |
+help: Add return type annotation
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> backend\api\habits.py:89:61
+   |
+89 | @router.get("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+   |                                                             ^^^^
+90 | def get_reward_tiers(
+91 |     slug: str, tier_type: str = "weekly", db: Session = Depends(get_db)
+   |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `get_reward_tiers`
+  --> backend\api\habits.py:90:5
+   |
+89 | @router.get("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+90 | def get_reward_tiers(
+   |     ^^^^^^^^^^^^^^^^
+91 |     slug: str, tier_type: str = "weekly", db: Session = Depends(get_db)
+92 | ):
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_today_log`
+   --> backend\api\habits.py:103:5
+    |
+102 | @router.get("/profiles/{slug}/today", response_model=schemas.DayLogOut)
+103 | def get_today_log(slug: str, db: Session = Depends(get_db)):
+    |     ^^^^^^^^^^^^^
+104 |     profile = crud.get_profile_by_slug(db, slug)
+105 |     if not profile:
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `save_habits`
+   --> backend\api\habits.py:133:5
+    |
+131 |     "/profiles/{slug}/habits", response_model=schemas.DayLogOut, status_code=201
+132 | )
+133 | def save_habits(slug: str, payload: schemas.DayLogIn, db: Session = Depends(get_db)):
+    |     ^^^^^^^^^^^
+134 |     profile = crud.get_profile_by_slug(db, slug)
+135 |     if not profile:
+    |
+help: Add return type annotation
+
+RET504 Unnecessary assignment to `log` before `return` statement
+   --> backend\api\habits.py:138:12
+    |
+136 |         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
+137 |     log = crud.upsert_day_log(db, profile.id, payload.date, payload.habits)
+138 |     return log
+    |            ^^^
+    |
+help: Remove unnecessary assignment
+
+ANN201 Missing return type annotation for public function `complete_day`
+   --> backend\api\habits.py:142:5
+    |
+141 | @router.post("/profiles/{slug}/complete-day", response_model=schemas.DayLogOut)
+142 | def complete_day(
+    |     ^^^^^^^^^^^^
+143 |     slug: str, payload: schemas.DayCompleteIn, db: Session = Depends(get_db)
+144 | ):
+    |
+help: Add return type annotation
+
+RET504 Unnecessary assignment to `log` before `return` statement
+   --> backend\api\habits.py:156:12
+    |
+154 |         payload.pct,
+155 |     )
+156 |     return log
+    |            ^^^
+    |
+help: Remove unnecessary assignment
+
+ANN201 Missing return type annotation for public function `get_week_stats`
+   --> backend\api\habits.py:163:5
+    |
+162 | @router.get("/profiles/{slug}/week", response_model=schemas.WeekStatsOut)
+163 | def get_week_stats(
+    |     ^^^^^^^^^^^^^^
+164 |     slug: str, week_start: Optional[str] = None, db: Session = Depends(get_db)
+165 | ):
+    |
+help: Add return type annotation
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\api\habits.py:164:28
+    |
+162 | @router.get("/profiles/{slug}/week", response_model=schemas.WeekStatsOut)
+163 | def get_week_stats(
+164 |     slug: str, week_start: Optional[str] = None, db: Session = Depends(get_db)
+    |                            ^^^^^^^^^^^^^
+165 | ):
+166 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `get_month_stats`
+   --> backend\api\habits.py:173:5
+    |
+172 | @router.get("/profiles/{slug}/month", response_model=schemas.MonthStatsOut)
+173 | def get_month_stats(
+    |     ^^^^^^^^^^^^^^^
+174 |     slug: str, month_key: Optional[str] = None, db: Session = Depends(get_db)
+175 | ):
+    |
+help: Add return type annotation
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\api\habits.py:174:27
+    |
+172 | @router.get("/profiles/{slug}/month", response_model=schemas.MonthStatsOut)
+173 | def get_month_stats(
+174 |     slug: str, month_key: Optional[str] = None, db: Session = Depends(get_db)
+    |                           ^^^^^^^^^^^^^
+175 | ):
+176 |     profile = crud.get_profile_by_slug(db, slug)
+    |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `get_streak`
+   --> backend\api\habits.py:183:5
+    |
+182 | @router.get("/profiles/{slug}/streak")
+183 | def get_streak(slug: str, db: Session = Depends(get_db)):
+    |     ^^^^^^^^^^
+184 |     profile = crud.get_profile_by_slug(db, slug)
+185 |     if not profile:
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_dashboard`
+   --> backend\api\habits.py:195:5
+    |
+194 | @router.get("/profiles/{slug}/dashboard", response_model=schemas.ProfileDashboardOut)
+195 | def get_dashboard(slug: str, db: Session = Depends(get_db)):
+    |     ^^^^^^^^^^^^^
+196 |     profile = crud.get_profile_by_slug(db, slug)
+197 |     if not profile:
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_trends`
+   --> backend\api\habits.py:206:5
+    |
+205 | @router.get("/profiles/{slug}/trends", response_model=schemas.TrendResponse)
+206 | def get_trends(
+    |     ^^^^^^^^^^
+207 |     slug: str,
+208 |     period: str = "weekly",  # 'weekly' | 'monthly' | 'yearly'
+    |
+help: Add return type annotation
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\backup.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / import shutil
+ 8 | | import logging
+ 9 | | from datetime import datetime
+10 | | from pathlib import Path
+11 | | from .config import settings
+   | |____________________________^
+12 |
+13 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+ANN202 Missing return type annotation for private function `_cleanup_old_backups`
+  --> backend\backup.py:64:5
+   |
+64 | def _cleanup_old_backups():
+   |     ^^^^^^^^^^^^^^^^^^^^
+65 |     """Remove old backups keeping only MAX_BACKUPS most recent."""
+66 |     if not BACKUP_DIR.exists():
+   |
+help: Add return type annotation: `None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> backend\config.py:6:1
+  |
+4 |   Supports SQLite, PostgreSQL (Supabase), and MySQL.
+5 |   """
+6 | / from pydantic_settings import BaseSettings
+7 | | from typing import List
+  | |_______________________^
+  |
+help: Organize imports
+
+S105 Possible hardcoded password assigned to: "secret_key"
+  --> backend\config.py:15:23
+   |
+13 |     app_version: str = "2.0.0"
+14 |     debug: bool = True
+15 |     secret_key: str = "dev-secret-change-in-production"
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+16 |
+17 |     # ΓöÇΓöÇ Admin ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   |
+
+S105 Possible hardcoded password assigned to: "token_prefix"
+  --> backend\config.py:20:25
+   |
+18 |     admin_pin: str = "1234"
+19 |     pin_length: int = 4
+20 |     token_prefix: str = "HFAM-"
+   |                         ^^^^^^^
+21 |
+22 |     # ΓöÇΓöÇ Database ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   |
+
+S104 Possible binding to all interfaces
+  --> backend\config.py:30:17
+   |
+29 |     # ΓöÇΓöÇ Server ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+30 |     host: str = "0.0.0.0"
+   |                 ^^^^^^^^^
+31 |     port: int = 8765
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> backend\config.py:34:36
+   |
+33 |     @property
+34 |     def cors_origins_list(self) -> List[str]:
+   |                                    ^^^^
+35 |         return [o.strip() for o in self.cors_origins.split(",")]
+   |
+help: Replace with `list`
+
+RET505 [*] Unnecessary `elif` after `return` statement
+  --> backend\config.py:43:9
+   |
+41 |         if url.startswith("sqlite"):
+42 |             return "sqlite"
+43 |         elif "postgresql" in url or "postgres" in url:
+   |         ^^^^
+44 |             return "postgresql"
+45 |         elif "mysql" in url:
+   |
+help: Remove unnecessary `elif`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\crud.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / import json
+ 8 | | import hashlib
+ 9 | | from datetime import datetime, date, timedelta
+10 | | from typing import Optional, List
+11 | |
+12 | | from sqlalchemy.orm import Session
+13 | | from sqlalchemy import func
+14 | |
+15 | | from . import models, schemas
+16 | | from .config import settings
+17 | | from .data_config import (
+18 | |     _hash_pin,
+19 | |     DEFAULT_ADMIN_PIN,
+20 | |     PROFILE_TEMPLATES,
+21 | |     HABIT_TEMPLATES,
+22 | |     DEFAULT_WEEKLY_TIERS,
+23 | | )
+24 | | from . import backup
+   | |____________________^
+   |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\crud.py:30:42
+   |
+30 | def verify_pin(db: Session, pin: str) -> Optional[dict]:
+   |                                          ^^^^^^^^^^^^^^
+31 |     """
+32 |     Verify a PIN. Returns:
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\crud.py:73:6
+   |
+71 | def update_app_settings(
+72 |     db: Session, data: schemas.AppSettingsUpdate
+73 | ) -> Optional[models.AppSettings]:
+   |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+74 |     cfg = get_app_settings(db)
+75 |     if not cfg:
+   |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `get_profiles`
+  --> backend\crud.py:95:5
+   |
+95 | def get_profiles(db: Session):
+   |     ^^^^^^^^^^^^
+96 |     return db.query(models.Profile).filter(models.Profile.is_active).all()
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_all_profiles`
+   --> backend\crud.py:99:5
+    |
+ 99 | def get_all_profiles(db: Session):
+    |     ^^^^^^^^^^^^^^^^
+100 |     return db.query(models.Profile).all()
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_profile_by_slug`
+   --> backend\crud.py:103:5
+    |
+103 | def get_profile_by_slug(db: Session, slug: str):
+    |     ^^^^^^^^^^^^^^^^^^^
+104 |     return db.query(models.Profile).filter(models.Profile.slug == slug).first()
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_profile_by_id`
+   --> backend\crud.py:107:5
+    |
+107 | def get_profile_by_id(db: Session, profile_id: int):
+    |     ^^^^^^^^^^^^^^^^^
+108 |     return db.query(models.Profile).filter(models.Profile.id == profile_id).first()
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `create_profile`
+   --> backend\crud.py:111:5
+    |
+111 | def create_profile(db: Session, data: schemas.ProfileCreate):
+    |     ^^^^^^^^^^^^^^
+112 |     profile = models.Profile(
+113 |         slug=data.slug,
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `update_profile`
+   --> backend\crud.py:130:5
+    |
+130 | def update_profile(db: Session, profile: models.Profile, data: schemas.ProfileUpdate):
+    |     ^^^^^^^^^^^^^^
+131 |     for field, value in data.model_dump(exclude_unset=True).items():
+132 |         if field == "pin":
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `delete_profile`
+   --> backend\crud.py:142:5
+    |
+142 | def delete_profile(db: Session, profile: models.Profile):
+    |     ^^^^^^^^^^^^^^
+143 |     backup.create_backup(reason=f"delete_profile_{profile.slug}")
+144 |     profile.is_active = False
+    |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `get_habit_templates`
+   --> backend\crud.py:151:5
+    |
+151 | def get_habit_templates(db: Session, profile_id: int, active_only: bool = True):
+    |     ^^^^^^^^^^^^^^^^^^^
+152 |     q = db.query(models.HabitTemplate).filter(
+153 |         models.HabitTemplate.profile_id == profile_id
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_habit_template`
+   --> backend\crud.py:160:5
+    |
+160 | def get_habit_template(db: Session, template_id: int):
+    |     ^^^^^^^^^^^^^^^^^^
+161 |     return (
+162 |         db.query(models.HabitTemplate)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `create_habit_template`
+   --> backend\crud.py:168:5
+    |
+168 | def create_habit_template(
+    |     ^^^^^^^^^^^^^^^^^^^^^
+169 |     db: Session, profile_id: int, data: schemas.HabitTemplateCreate
+170 | ):
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `update_habit_template`
+   --> backend\crud.py:199:5
+    |
+199 | def update_habit_template(
+    |     ^^^^^^^^^^^^^^^^^^^^^
+200 |     db: Session, tpl: models.HabitTemplate, data: schemas.HabitTemplateUpdate
+201 | ):
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `delete_habit_template`
+   --> backend\crud.py:209:5
+    |
+209 | def delete_habit_template(db: Session, tpl: models.HabitTemplate):
+    |     ^^^^^^^^^^^^^^^^^^^^^
+210 |     tpl.is_active = False
+211 |     db.commit()
+    |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `get_micro_habits`
+   --> backend\crud.py:217:5
+    |
+217 | def get_micro_habits(db: Session, template_id: int, active_only: bool = True):
+    |     ^^^^^^^^^^^^^^^^
+218 |     q = db.query(models.MicroHabit).filter(
+219 |         models.MicroHabit.habit_template_id == template_id
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `create_micro_habit`
+   --> backend\crud.py:226:5
+    |
+226 | def create_micro_habit(db: Session, template_id: int, data: schemas.MicroHabitCreate):
+    |     ^^^^^^^^^^^^^^^^^^
+227 |     mh = models.MicroHabit(
+228 |         habit_template_id=template_id,
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `update_micro_habit`
+   --> backend\crud.py:238:5
+    |
+238 | def update_micro_habit(
+    |     ^^^^^^^^^^^^^^^^^^
+239 |     db: Session, mh: models.MicroHabit, data: schemas.MicroHabitUpdate
+240 | ):
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `delete_micro_habit`
+   --> backend\crud.py:248:5
+    |
+248 | def delete_micro_habit(db: Session, mh: models.MicroHabit):
+    |     ^^^^^^^^^^^^^^^^^^
+249 |     mh.is_active = False
+250 |     db.commit()
+    |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `get_reward_tiers`
+   --> backend\crud.py:256:5
+    |
+256 | def get_reward_tiers(db: Session, profile_id: int, tier_type: str = "weekly"):
+    |     ^^^^^^^^^^^^^^^^
+257 |     return (
+258 |         db.query(models.RewardTier)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `upsert_reward_tiers`
+   --> backend\crud.py:268:5
+    |
+268 | def upsert_reward_tiers(
+    |     ^^^^^^^^^^^^^^^^^^^
+269 |     db: Session, profile_id: int, tiers: List[schemas.RewardTierCreate]
+270 | ):
+    |
+help: Add return type annotation
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\crud.py:269:42
+    |
+268 | def upsert_reward_tiers(
+269 |     db: Session, profile_id: int, tiers: List[schemas.RewardTierCreate]
+    |                                          ^^^^
+270 | ):
+271 |     # Delete existing tiers for this type
+    |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `get_day_log`
+   --> backend\crud.py:297:5
+    |
+297 | def get_day_log(db: Session, profile_id: int, date_str: str):
+    |     ^^^^^^^^^^^
+298 |     return (
+299 |         db.query(models.DayLog)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `upsert_day_log`
+   --> backend\crud.py:308:5
+    |
+308 | def upsert_day_log(
+    |     ^^^^^^^^^^^^^^
+309 |     db: Session, profile_id: int, date_str: str, habits_data: List[schemas.HabitEntryIn]
+310 | ):
+    |
+help: Add return type annotation
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\crud.py:309:63
+    |
+308 | def upsert_day_log(
+309 |     db: Session, profile_id: int, date_str: str, habits_data: List[schemas.HabitEntryIn]
+    |                                                               ^^^^
+310 | ):
+311 |     log = get_day_log(db, profile_id, date_str)
+    |
+help: Replace with `list`
+
+ANN201 Missing return type annotation for public function `complete_day`
+   --> backend\crud.py:360:5
+    |
+360 | def complete_day(
+    |     ^^^^^^^^^^^^
+361 |     db: Session,
+362 |     profile_id: int,
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_day_logs_in_range`
+   --> backend\crud.py:384:5
+    |
+384 | def get_day_logs_in_range(db: Session, profile_id: int, start: str, end: str):
+    |     ^^^^^^^^^^^^^^^^^^^^^
+385 |     return (
+386 |         db.query(models.DayLog)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_all_day_logs`
+   --> backend\crud.py:397:5
+    |
+397 | def get_all_day_logs(db: Session, profile_id: int):
+    |     ^^^^^^^^^^^^^^^^
+398 |     return (
+399 |         db.query(models.DayLog)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_week_dates`
+   --> backend\crud.py:443:5
+    |
+443 | def get_week_dates(reference: Optional[date] = None):
+    |     ^^^^^^^^^^^^^^
+444 |     ref = reference or date.today()
+445 |     monday = ref - timedelta(days=ref.weekday())
+    |
+help: Add return type annotation
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\crud.py:443:31
+    |
+443 | def get_week_dates(reference: Optional[date] = None):
+    |                               ^^^^^^^^^^^^^^
+444 |     ref = reference or date.today()
+445 |     monday = ref - timedelta(days=ref.weekday())
+    |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `compute_week_stats`
+   --> backend\crud.py:450:5
+    |
+450 | def compute_week_stats(
+    |     ^^^^^^^^^^^^^^^^^^
+451 |     db: Session, profile: models.Profile, week_start: Optional[str] = None
+452 | ):
+    |
+help: Add return type annotation
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\crud.py:451:55
+    |
+450 | def compute_week_stats(
+451 |     db: Session, profile: models.Profile, week_start: Optional[str] = None
+    |                                                       ^^^^^^^^^^^^^
+452 | ):
+453 |     if week_start:
+    |
+help: Convert to `X | None`
+
+ANN202 Missing return type annotation for private function `_compute_earned_from_tiers`
+   --> backend\crud.py:504:5
+    |
+504 | def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+505 |     cfg = get_app_settings(db)
+506 |     streak_days = cfg.streak_bonus_days if cfg else 7
+    |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `tiers`
+   --> backend\crud.py:504:32
+    |
+504 | def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
+    |                                ^^^^^
+505 |     cfg = get_app_settings(db)
+506 |     streak_days = cfg.streak_bonus_days if cfg else 7
+    |
+
+ANN001 Missing type annotation for function argument `pct`
+   --> backend\crud.py:504:39
+    |
+504 | def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
+    |                                       ^^^
+505 |     cfg = get_app_settings(db)
+506 |     streak_days = cfg.streak_bonus_days if cfg else 7
+    |
+
+ANN001 Missing type annotation for function argument `base_reward`
+   --> backend\crud.py:504:44
+    |
+504 | def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
+    |                                            ^^^^^^^^^^^
+505 |     cfg = get_app_settings(db)
+506 |     streak_days = cfg.streak_bonus_days if cfg else 7
+    |
+
+ANN001 Missing type annotation for function argument `streak`
+   --> backend\crud.py:504:57
+    |
+504 | def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
+    |                                                         ^^^^^^
+505 |     cfg = get_app_settings(db)
+506 |     streak_days = cfg.streak_bonus_days if cfg else 7
+    |
+
+ANN001 Missing type annotation for function argument `db`
+   --> backend\crud.py:504:65
+    |
+504 | def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
+    |                                                                 ^^
+505 |     cfg = get_app_settings(db)
+506 |     streak_days = cfg.streak_bonus_days if cfg else 7
+    |
+
+ANN201 Missing return type annotation for public function `close_week`
+   --> backend\crud.py:520:5
+    |
+520 | def close_week(db: Session, profile: models.Profile, week_start: str):
+    |     ^^^^^^^^^^
+521 |     existing = (
+522 |         db.query(models.WeekReward)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `mark_reward_paid`
+   --> backend\crud.py:548:5
+    |
+548 | def mark_reward_paid(db: Session, reward: models.WeekReward, notes: Optional[str]):
+    |     ^^^^^^^^^^^^^^^^
+549 |     reward.reward_paid = True
+550 |     if notes:
+    |
+help: Add return type annotation
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\crud.py:548:69
+    |
+548 | def mark_reward_paid(db: Session, reward: models.WeekReward, notes: Optional[str]):
+    |                                                                     ^^^^^^^^^^^^^
+549 |     reward.reward_paid = True
+550 |     if notes:
+    |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `compute_month_stats`
+   --> backend\crud.py:560:5
+    |
+560 | def compute_month_stats(
+    |     ^^^^^^^^^^^^^^^^^^^
+561 |     db: Session, profile: models.Profile, month_key: Optional[str] = None
+562 | ):
+    |
+help: Add return type annotation
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\crud.py:561:54
+    |
+560 | def compute_month_stats(
+561 |     db: Session, profile: models.Profile, month_key: Optional[str] = None
+    |                                                      ^^^^^^^^^^^^^
+562 | ):
+563 |     if not month_key:
+    |
+help: Convert to `X | None`
+
+ANN201 Missing return type annotation for public function `get_profile_dashboard`
+   --> backend\crud.py:602:5
+    |
+602 | def get_profile_dashboard(db: Session, profile: models.Profile):
+    |     ^^^^^^^^^^^^^^^^^^^^^
+603 |     templates = get_habit_templates(db, profile.id)
+604 |     all_logs = get_all_day_logs(db, profile.id)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_health`
+   --> backend\crud.py:663:5
+    |
+663 | def get_health(db: Session, db_url: str, db_engine_type: str):
+    |     ^^^^^^^^^^
+664 |     profiles = db.query(func.count(models.Profile.id)).scalar()
+665 |     logs = db.query(func.count(models.DayLog.id)).scalar()
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `reset_all_data`
+   --> backend\crud.py:681:5
+    |
+681 | def reset_all_data(db: Session):
+    |     ^^^^^^^^^^^^^^
+682 |     """Delete all logs and rewards. Keeps profiles and habits."""
+683 |     backup.create_backup(reason="reset_all_data")
+    |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `get_export_data`
+   --> backend\crud.py:690:5
+    |
+690 | def get_export_data(db: Session):
+    |     ^^^^^^^^^^^^^^^
+691 |     logs = (
+692 |         db.query(models.DayLog)
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_trend_data`
+   --> backend\crud.py:713:5
+    |
+713 | def get_trend_data(db: Session, profile: models.Profile, period: str):
+    |     ^^^^^^^^^^^^^^
+714 |     """Get daily trend data for charts."""
+715 |     from datetime import timedelta
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `close_month`
+   --> backend\crud.py:797:5
+    |
+797 | def close_month(db: Session, profile: models.Profile, month_key: str):
+    |     ^^^^^^^^^^^
+798 |     """Automatically close a month and generate rewards."""
+799 |     year, month = month_key.split("-")
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `get_habit_templates_catalog`
+   --> backend\crud.py:874:5
+    |
+874 | def get_habit_templates_catalog():
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+875 |     """Return predefined habit templates by age category."""
+876 |     return schemas.HabitTemplatesCatalog(
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `seed_default_data`
+    --> backend\crud.py:1025:5
+     |
+1025 | def seed_default_data(db: Session):
+     |     ^^^^^^^^^^^^^^^^^
+1026 |     """Seed profiles, habits, micro-habits, reward tiers, and app settings."""
+1027 |     # AppSettings
+     |
+help: Add return type annotation: `None`
+
+E501 Line too long (90 > 88)
+ --> backend\data_config.py:4:89
+  |
+2 | H├íbitosFam ΓÇô backend/data_config.py  (v3)
+3 | Seed templates for initial DB population.
+4 | Called once on first startup to populate profiles, habits, micro-habits, and reward tiers.
+  |                                                                                         ^^
+5 | """
+6 | import hashlib
+  |
+
+E501 Line too long (89 > 88)
+   --> backend\data_config.py:225:89
+    |
+223 |             "description": "Construir inteligencia financiera",
+224 |             "details": "Ahorro, registro y aprendizaje financiero",
+225 |             "motivation": "┬íLa independencia financiera empieza con tus h├íbitos de HOY!",
+    |                                                                                         ^
+226 |             "micro_habits": [
+227 |                 "≡ƒÆ░ Registrar un ingreso o gasto del d├¡a",
+    |
+
+E501 Line too long (97 > 88)
+   --> backend\data_config.py:239:87
+    |
+238 | DEFAULT_WEEKLY_TIERS = [
+239 |     {"min_pct": 0.90, "multiplier": 2.0, "label": "├ëLITE ≡ƒææ",    "emoji": "≡ƒææ", "sort_order": 0},
+    |                                                                                         ^^^^^^^^^
+240 |     {"min_pct": 0.75, "multiplier": 1.5, "label": "Incre├¡ble ≡ƒîƒ", "emoji": "≡ƒîƒ", "sort_order": 1},
+241 |     {"min_pct": 0.60, "multiplier": 1.0, "label": "Bien ≡ƒÆ¬",      "emoji": "≡ƒÆ¬", "sort_order": 2},
+    |
+
+E501 Line too long (98 > 88)
+   --> backend\data_config.py:240:87
+    |
+238 | DEFAULT_WEEKLY_TIERS = [
+239 |     {"min_pct": 0.90, "multiplier": 2.0, "label": "├ëLITE ≡ƒææ",    "emoji": "≡ƒææ", "sort_order": 0},
+240 |     {"min_pct": 0.75, "multiplier": 1.5, "label": "Incre├¡ble ≡ƒîƒ", "emoji": "≡ƒîƒ", "sort_order": 1},
+    |                                                                                         ^^^^^^^^^^
+241 |     {"min_pct": 0.60, "multiplier": 1.0, "label": "Bien ≡ƒÆ¬",      "emoji": "≡ƒÆ¬", "sort_order": 2},
+242 |     {"min_pct": 0.40, "multiplier": 0.5, "label": "Regular ≡ƒî▒",   "emoji": "≡ƒî▒", "sort_order": 3},
+    |
+
+E501 Line too long (98 > 88)
+   --> backend\data_config.py:241:87
+    |
+239 |     {"min_pct": 0.90, "multiplier": 2.0, "label": "├ëLITE ≡ƒææ",    "emoji": "≡ƒææ", "sort_order": 0},
+240 |     {"min_pct": 0.75, "multiplier": 1.5, "label": "Incre├¡ble ≡ƒîƒ", "emoji": "≡ƒîƒ", "sort_order": 1},
+241 |     {"min_pct": 0.60, "multiplier": 1.0, "label": "Bien ≡ƒÆ¬",      "emoji": "≡ƒÆ¬", "sort_order": 2},
+    |                                                                                         ^^^^^^^^^^
+242 |     {"min_pct": 0.40, "multiplier": 0.5, "label": "Regular ≡ƒî▒",   "emoji": "≡ƒî▒", "sort_order": 3},
+243 |     {"min_pct": 0.00, "multiplier": 0.0, "label": "Seguir ≡ƒÆÖ",    "emoji": "≡ƒÆÖ", "sort_order": 4},
+    |
+
+E501 Line too long (98 > 88)
+   --> backend\data_config.py:242:87
+    |
+240 |     {"min_pct": 0.75, "multiplier": 1.5, "label": "Incre├¡ble ≡ƒîƒ", "emoji": "≡ƒîƒ", "sort_order": 1},
+241 |     {"min_pct": 0.60, "multiplier": 1.0, "label": "Bien ≡ƒÆ¬",      "emoji": "≡ƒÆ¬", "sort_order": 2},
+242 |     {"min_pct": 0.40, "multiplier": 0.5, "label": "Regular ≡ƒî▒",   "emoji": "≡ƒî▒", "sort_order": 3},
+    |                                                                                         ^^^^^^^^^^
+243 |     {"min_pct": 0.00, "multiplier": 0.0, "label": "Seguir ≡ƒÆÖ",    "emoji": "≡ƒÆÖ", "sort_order": 4},
+244 | ]
+    |
+
+E501 Line too long (98 > 88)
+   --> backend\data_config.py:243:87
+    |
+241 |     {"min_pct": 0.60, "multiplier": 1.0, "label": "Bien ≡ƒÆ¬",      "emoji": "≡ƒÆ¬", "sort_order": 2},
+242 |     {"min_pct": 0.40, "multiplier": 0.5, "label": "Regular ≡ƒî▒",   "emoji": "≡ƒî▒", "sort_order": 3},
+243 |     {"min_pct": 0.00, "multiplier": 0.0, "label": "Seguir ≡ƒÆÖ",    "emoji": "≡ƒÆÖ", "sort_order": 4},
+    |                                                                                         ^^^^^^^^^^
+244 | ]
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\database.py:11:1
+   |
+ 9 |     - MySQL:       mysql+pymysql://user:pass@host:3306/habitosfam
+10 |   """
+11 | / from sqlalchemy import create_engine, event
+12 | | from sqlalchemy.orm import sessionmaker, DeclarativeBase
+13 | | from sqlalchemy.pool import StaticPool
+14 | | from typing import Generator
+15 | | from .config import settings
+16 | | import logging
+   | |______________^
+17 |
+18 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+ANN202 Missing return type annotation for private function `_build_engine`
+  --> backend\database.py:22:5
+   |
+21 | # ΓöÇΓöÇ Engine factory ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+22 | def _build_engine():
+   |     ^^^^^^^^^^^^^
+23 |     """
+24 |     Builds the SQLAlchemy engine based on DATABASE_URL.
+   |
+help: Add return type annotation
+
+ANN202 Missing return type annotation for private function `set_sqlite_pragma`
+  --> backend\database.py:40:13
+   |
+38 |         # Enable WAL mode for better concurrent read performance
+39 |         @event.listens_for(engine, "connect")
+40 |         def set_sqlite_pragma(dbapi_conn, _connection_record):
+   |             ^^^^^^^^^^^^^^^^^
+41 |             cursor = dbapi_conn.cursor()
+42 |             cursor.execute("PRAGMA journal_mode=WAL")
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `dbapi_conn`
+  --> backend\database.py:40:31
+   |
+38 |         # Enable WAL mode for better concurrent read performance
+39 |         @event.listens_for(engine, "connect")
+40 |         def set_sqlite_pragma(dbapi_conn, _connection_record):
+   |                               ^^^^^^^^^^
+41 |             cursor = dbapi_conn.cursor()
+42 |             cursor.execute("PRAGMA journal_mode=WAL")
+   |
+
+ANN001 Missing type annotation for function argument `_connection_record`
+  --> backend\database.py:40:43
+   |
+38 |         # Enable WAL mode for better concurrent read performance
+39 |         @event.listens_for(engine, "connect")
+40 |         def set_sqlite_pragma(dbapi_conn, _connection_record):
+   |                                           ^^^^^^^^^^^^^^^^^^
+41 |             cursor = dbapi_conn.cursor()
+42 |             cursor.execute("PRAGMA journal_mode=WAL")
+   |
+
+ANN201 Missing return type annotation for public function `create_tables`
+   --> backend\database.py:105:5
+    |
+105 | def create_tables():
+    |     ^^^^^^^^^^^^^
+106 |     """Create all tables if they don't exist (runs on startup)."""
+107 |     Base.metadata.create_all(bind=engine)
+    |
+help: Add return type annotation: `None`
+
+E501 Line too long (92 > 88)
+   --> backend\database.py:108:88
+    |
+106 |     """Create all tables if they don't exist (runs on startup)."""
+107 |     Base.metadata.create_all(bind=engine)
+108 |     logger.info("Γ£à Database tables created/verified (engine: %s)", settings.db_engine_type)
+    |                                                                                         ^^^^
+    |
+
+ANN201 Missing return type annotation for public function `drop_tables`
+   --> backend\database.py:111:5
+    |
+111 | def drop_tables():
+    |     ^^^^^^^^^^^
+112 |     """Drop all tables ΓÇö use only in dev/testing."""
+113 |     Base.metadata.drop_all(bind=engine)
+    |
+help: Add return type annotation: `None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\main.py:6:1
+   |
+ 4 |   Serves the REST API and static frontend files.
+ 5 |   """
+ 6 | / import logging
+ 7 | | import sys
+ 8 | | from contextlib import asynccontextmanager
+ 9 | | from pathlib import Path
+10 | |
+11 | | from fastapi import FastAPI
+12 | | from fastapi.middleware.cors import CORSMiddleware
+13 | | from fastapi.staticfiles import StaticFiles
+14 | | from fastapi.responses import FileResponse
+15 | |
+16 | | from .config import settings
+17 | | from .database import create_tables
+18 | | from .api import habits, admin
+   | |______________________________^
+19 |
+20 |   # ΓöÇΓöÇ Logging ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   |
+help: Organize imports
+
+ANN201 Missing return type annotation for public function `lifespan`
+  --> backend\main.py:30:11
+   |
+28 | # ΓöÇΓöÇ App lifecycle ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+29 | @asynccontextmanager
+30 | async def lifespan(app: FastAPI):
+   |           ^^^^^^^^
+31 |     """Startup: create tables and seed default data."""
+32 |     print("DEBUG: Entering lifespan", flush=True)
+   |
+help: Add return type annotation
+
+W293 [*] Blank line contains whitespace
+  --> backend\main.py:35:1
+   |
+33 |     logger.info("≡ƒÜÇ H├íbitosFam v3 starting up (%s)", settings.db_engine_type)
+34 |     sys.stdout.flush()
+35 |     
+   | ^^^^
+36 |     try:
+37 |         logger.info("≡ƒôí Initializing database tables...")
+   |
+help: Remove whitespace from blank line
+
+W291 [*] Trailing whitespace
+  --> backend\main.py:45:68
+   |
+43 |         logger.error("Γ¥î FAILED to create tables: %s", e, exc_info=True)
+44 |         sys.stdout.flush()
+45 |         # We don't re-raise here to allow the app to at least start 
+   |                                                                    ^
+46 |         # so we can see the logs on Render before it crashes/restarts.
+47 |         # But actually, it's better to let it fail so we know.
+   |
+help: Remove trailing whitespace
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\main.py:51:5
+   |
+50 |       # Auto-seed default profiles, habits, micro-habits, reward tiers
+51 | /     from .database import SessionLocal
+52 | |     from . import crud
+   | |______________________^
+53 |       db = SessionLocal()
+54 |       try:
+   |
+help: Organize imports
+
+ANN201 Missing return type annotation for public function `public_health`
+  --> backend\main.py:90:5
+   |
+88 | # ΓöÇΓöÇ Health (no auth needed) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+89 | @app.get("/api/health-public")
+90 | def public_health():
+   |     ^^^^^^^^^^^^^
+91 |     return {
+92 |         "status": "ok",
+   |
+help: Add return type annotation
+
+E501 Line too long (90 > 88)
+   --> backend\main.py:100:89
+    |
+ 99 | # ΓöÇΓöÇ Static files (serve frontend from project root) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+100 | STATIC_DIR = Path(__file__).parent.parent / "frontend"   # was project root, now frontend/
+    |                                                                                         ^^
+101 |
+102 | # Mount admin page
+    |
+
+ANN201 Missing return type annotation for public function `serve_admin`
+   --> backend\main.py:104:11
+    |
+102 | # Mount admin page
+103 | @app.get("/admin", include_in_schema=False)
+104 | async def serve_admin():
+    |           ^^^^^^^^^^^
+105 |     return FileResponse(STATIC_DIR / "admin.html")
+    |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `serve_index`
+   --> backend\main.py:109:11
+    |
+107 | # Serve index.html for root
+108 | @app.get("/", include_in_schema=False)
+109 | async def serve_index():
+    |           ^^^^^^^^^^^
+110 |     return FileResponse(STATIC_DIR / "index.html")
+    |
+help: Add return type annotation
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\migrations\env.py:9:1
+   |
+ 7 |   sys.path.insert(0, str(Path(__file__).parent.parent))
+ 8 |
+ 9 | / from logging.config import fileConfig
+10 | | from sqlalchemy import engine_from_config, pool
+11 | | from alembic import context
+12 | |
+13 | | from backend.database import Base
+14 | | from backend import models
+15 | | from backend.config import settings
+   | |___________________________________^
+16 |
+17 |   config = context.config
+   |
+help: Organize imports
+
+F401 [*] `backend.models` imported but unused
+  --> backend\migrations\env.py:14:21
+   |
+13 | from backend.database import Base
+14 | from backend import models
+   |                     ^^^^^^
+15 | from backend.config import settings
+   |
+help: Remove unused import: `backend.models`
+
+ANN201 Missing return type annotation for public function `get_url`
+  --> backend\migrations\env.py:24:5
+   |
+24 | def get_url():
+   |     ^^^^^^^
+25 |     return settings.database_url
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `run_migrations_offline`
+  --> backend\migrations\env.py:28:5
+   |
+28 | def run_migrations_offline():
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+29 |     url = get_url()
+30 |     context.configure(
+   |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `run_migrations_online`
+  --> backend\migrations\env.py:40:5
+   |
+40 | def run_migrations_online():
+   |     ^^^^^^^^^^^^^^^^^^^^^
+41 |     configuration = config.get_section(config.config_ini_section)
+42 |     configuration["sqlalchemy.url"] = get_url()
+   |
+help: Add return type annotation: `None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\models.py:12:1
+   |
+10 |     - Profile: reward amounts, monthly config, currency
+11 |   """
+12 | / from sqlalchemy import (
+13 | |     Column, Integer, String, Float, Boolean,
+14 | |     DateTime, Text, ForeignKey, UniqueConstraint
+15 | | )
+16 | | from sqlalchemy.orm import relationship
+17 | | from datetime import datetime
+18 | | from .database import Base
+   | |__________________________^
+   |
+help: Organize imports
+
+E501 Line too long (90 > 88)
+  --> backend\models.py:33:89
+   |
+31 |     streak_bonus_days = Column(Integer, default=7)
+32 |     streak_bonus_pct = Column(Float, default=1.5)  # 1.5 = +50%
+33 |     updated_at       = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+   |                                                                                         ^^
+   |
+
+E501 Line too long (91 > 88)
+  --> backend\models.py:61:89
+   |
+60 |     created_at        = Column(DateTime, default=datetime.utcnow)
+61 |     updated_at        = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+   |                                                                                         ^^^
+62 |
+63 |     # Relationships
+   |
+
+E501 Line too long (100 > 88)
+  --> backend\models.py:64:89
+   |
+63 |     # Relationships
+64 |     day_logs        = relationship("DayLog", back_populates="profile", cascade="all, delete-orphan")
+   |                                                                                         ^^^^^^^^^^^^
+65 |     rewards         = relationship("WeekReward", back_populates="profile", cascade="all, delete-orphan")
+66 |     month_rewards   = relationship("MonthReward", back_populates="profile", cascade="all, delete-orphan")
+   |
+
+E501 Line too long (104 > 88)
+  --> backend\models.py:65:89
+   |
+63 |     # Relationships
+64 |     day_logs        = relationship("DayLog", back_populates="profile", cascade="all, delete-orphan")
+65 |     rewards         = relationship("WeekReward", back_populates="profile", cascade="all, delete-orphan")
+   |                                                                                         ^^^^^^^^^^^^^^^^
+66 |     month_rewards   = relationship("MonthReward", back_populates="profile", cascade="all, delete-orphan")
+67 |     habit_templates = relationship("HabitTemplate", back_populates="profile", cascade="all, delete-orphan")
+   |
+
+E501 Line too long (105 > 88)
+  --> backend\models.py:66:89
+   |
+64 |     day_logs        = relationship("DayLog", back_populates="profile", cascade="all, delete-orphan")
+65 |     rewards         = relationship("WeekReward", back_populates="profile", cascade="all, delete-orphan")
+66 |     month_rewards   = relationship("MonthReward", back_populates="profile", cascade="all, delete-orphan")
+   |                                                                                         ^^^^^^^^^^^^^^^^^
+67 |     habit_templates = relationship("HabitTemplate", back_populates="profile", cascade="all, delete-orphan")
+68 |     reward_tiers    = relationship("RewardTier", back_populates="profile", cascade="all, delete-orphan")
+   |
+
+E501 Line too long (107 > 88)
+  --> backend\models.py:67:89
+   |
+65 |     rewards         = relationship("WeekReward", back_populates="profile", cascade="all, delete-orphan")
+66 |     month_rewards   = relationship("MonthReward", back_populates="profile", cascade="all, delete-orphan")
+67 |     habit_templates = relationship("HabitTemplate", back_populates="profile", cascade="all, delete-orphan")
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^
+68 |     reward_tiers    = relationship("RewardTier", back_populates="profile", cascade="all, delete-orphan")
+   |
+
+E501 Line too long (104 > 88)
+  --> backend\models.py:68:89
+   |
+66 |     month_rewards   = relationship("MonthReward", back_populates="profile", cascade="all, delete-orphan")
+67 |     habit_templates = relationship("HabitTemplate", back_populates="profile", cascade="all, delete-orphan")
+68 |     reward_tiers    = relationship("RewardTier", back_populates="profile", cascade="all, delete-orphan")
+   |                                                                                         ^^^^^^^^^^^^^^^^
+69 |
+70 |     def __repr__(self):
+   |
+
+ANN204 Missing return type annotation for special method `__repr__`
+  --> backend\models.py:70:9
+   |
+68 |     reward_tiers    = relationship("RewardTier", back_populates="profile", cascade="all, delete-orphan")
+69 |
+70 |     def __repr__(self):
+   |         ^^^^^^^^
+71 |         return f"<Profile({self.slug}, {self.name}, {self.age}y)>"
+   |
+help: Add return type annotation: `str`
+
+E501 Line too long (96 > 88)
+  --> backend\models.py:84:89
+   |
+83 |     id          = Column(Integer, primary_key=True, index=True)
+84 |     profile_id  = Column(Integer, ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+   |                                                                                         ^^^^^^^^
+85 |     habit_key   = Column(String(50), nullable=False)    # 'sport', 'study', etc.
+86 |     name        = Column(String(150), nullable=False)
+   |
+
+E501 Line too long (95 > 88)
+   --> backend\models.py:100:89
+    |
+ 98 |     profile      = relationship("Profile", back_populates="habit_templates")
+ 99 |     micro_habits = relationship("MicroHabit", back_populates="habit_template",
+100 |                                 cascade="all, delete-orphan", order_by="MicroHabit.sort_order")
+    |                                                                                         ^^^^^^^
+101 |
+102 |     def __repr__(self):
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:102:9
+    |
+100 |                                 cascade="all, delete-orphan", order_by="MicroHabit.sort_order")
+101 |
+102 |     def __repr__(self):
+    |         ^^^^^^^^
+103 |         return f"<HabitTemplate({self.habit_key}, {self.name})>"
+    |
+help: Add return type annotation: `str`
+
+E501 Line too long (109 > 88)
+   --> backend\models.py:111:89
+    |
+110 |     id                = Column(Integer, primary_key=True, index=True)
+111 |     habit_template_id = Column(Integer, ForeignKey("habit_templates.id", ondelete="CASCADE"), nullable=False)
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^
+112 |     description       = Column(String(255), nullable=False)
+113 |     sort_order        = Column(Integer, default=0)
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:120:9
+    |
+118 |     habit_template = relationship("HabitTemplate", back_populates="micro_habits")
+119 |
+120 |     def __repr__(self):
+    |         ^^^^^^^^
+121 |         return f"<MicroHabit({self.description[:30]})>"
+    |
+help: Add return type annotation: `str`
+
+E501 Line too long (96 > 88)
+   --> backend\models.py:131:89
+    |
+130 |     id          = Column(Integer, primary_key=True, index=True)
+131 |     profile_id  = Column(Integer, ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    |                                                                                         ^^^^^^^^
+132 |     tier_type   = Column(String(20), default="weekly")  # 'weekly' or 'monthly'
+133 |     min_pct     = Column(Float, nullable=False)
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:142:9
+    |
+140 |     profile = relationship("Profile", back_populates="reward_tiers")
+141 |
+142 |     def __repr__(self):
+    |         ^^^^^^^^
+143 |         return f"<RewardTier({self.min_pct}ΓåÆ├ù{self.multiplier})>"
+    |
+help: Add return type annotation: `str`
+
+E501 Line too long (100 > 88)
+   --> backend\models.py:156:89
+    |
+155 |     id              = Column(Integer, primary_key=True, index=True)
+156 |     profile_id      = Column(Integer, ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    |                                                                                         ^^^^^^^^^^^^
+157 |     date            = Column(String(10), nullable=False, index=True)
+158 |     completed_count = Column(Integer, default=0)
+    |
+
+E501 Line too long (89 > 88)
+   --> backend\models.py:164:89
+    |
+162 |     bonus_star      = Column(Boolean, default=False)
+163 |     created_at      = Column(DateTime, default=datetime.utcnow)
+164 |     updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    |                                                                                         ^
+165 |
+166 |     # Relationships
+    |
+
+E501 Line too long (102 > 88)
+   --> backend\models.py:168:89
+    |
+166 |     # Relationships
+167 |     profile       = relationship("Profile", back_populates="day_logs")
+168 |     habit_entries = relationship("HabitEntry", back_populates="day_log", cascade="all, delete-orphan")
+    |                                                                                         ^^^^^^^^^^^^^^
+169 |
+170 |     def __repr__(self):
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:170:9
+    |
+168 |     habit_entries = relationship("HabitEntry", back_populates="day_log", cascade="all, delete-orphan")
+169 |
+170 |     def __repr__(self):
+    |         ^^^^^^^^
+171 |         return f"<DayLog({self.date}, {self.completed_count}/{self.total})>"
+    |
+help: Add return type annotation: `str`
+
+E501 Line too long (99 > 88)
+   --> backend\models.py:182:89
+    |
+181 |     id             = Column(Integer, primary_key=True, index=True)
+182 |     day_log_id     = Column(Integer, ForeignKey("day_logs.id", ondelete="CASCADE"), nullable=False)
+    |                                                                                         ^^^^^^^^^^^
+183 |     habit_id       = Column(String(50), nullable=False)
+184 |     done           = Column(Boolean, default=False)
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:190:9
+    |
+188 |     day_log = relationship("DayLog", back_populates="habit_entries")
+189 |
+190 |     def __repr__(self):
+    |         ^^^^^^^^
+191 |         return f"<HabitEntry({self.habit_id}, done={self.done})>"
+    |
+help: Add return type annotation: `str`
+
+E501 Line too long (100 > 88)
+   --> backend\models.py:204:89
+    |
+203 |     id              = Column(Integer, primary_key=True, index=True)
+204 |     profile_id      = Column(Integer, ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    |                                                                                         ^^^^^^^^^^^^
+205 |     week_start      = Column(String(10), nullable=False)
+206 |     week_end        = Column(String(10), nullable=False)
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:218:9
+    |
+216 |     profile = relationship("Profile", back_populates="rewards")
+217 |
+218 |     def __repr__(self):
+    |         ^^^^^^^^
+219 |         return f"<WeekReward({self.week_start}, ${self.earned_amount:.2f})>"
+    |
+help: Add return type annotation: `str`
+
+E501 Line too long (100 > 88)
+   --> backend\models.py:230:89
+    |
+229 |     id              = Column(Integer, primary_key=True, index=True)
+230 |     profile_id      = Column(Integer, ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    |                                                                                         ^^^^^^^^^^^^
+231 |     month_key       = Column(String(7), nullable=False)
+232 |     days_completed  = Column(Integer, default=0)
+    |
+
+ANN204 Missing return type annotation for special method `__repr__`
+   --> backend\models.py:243:9
+    |
+241 |     profile = relationship("Profile", back_populates="month_rewards")
+242 |
+243 |     def __repr__(self):
+    |         ^^^^^^^^
+244 |         return f"<MonthReward({self.month_key}, {self.pct*100:.0f}%)>"
+    |
+help: Add return type annotation: `str`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> backend\schemas.py:6:1
+  |
+4 |   """
+5 |
+6 | / from pydantic import BaseModel, Field, ConfigDict
+7 | | from typing import Optional, Dict, List
+8 | | from datetime import datetime
+  | |_____________________________^
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:21:19
+   |
+19 |     success: bool
+20 |     role: str  # 'admin' | 'user'
+21 |     profile_slug: Optional[str] = None
+   |                   ^^^^^^^^^^^^^
+22 |     token: str
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:37:16
+   |
+36 | class AppSettingsUpdate(BaseModel):
+37 |     admin_pin: Optional[str] = None  # raw PIN, will be hashed
+   |                ^^^^^^^^^^^^^
+38 |     currency_symbol: Optional[str] = None
+39 |     app_name: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:38:22
+   |
+36 | class AppSettingsUpdate(BaseModel):
+37 |     admin_pin: Optional[str] = None  # raw PIN, will be hashed
+38 |     currency_symbol: Optional[str] = None
+   |                      ^^^^^^^^^^^^^
+39 |     app_name: Optional[str] = None
+40 |     streak_bonus_days: Optional[int] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:39:15
+   |
+37 |     admin_pin: Optional[str] = None  # raw PIN, will be hashed
+38 |     currency_symbol: Optional[str] = None
+39 |     app_name: Optional[str] = None
+   |               ^^^^^^^^^^^^^
+40 |     streak_bonus_days: Optional[int] = None
+41 |     streak_bonus_pct: Optional[float] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:40:24
+   |
+38 |     currency_symbol: Optional[str] = None
+39 |     app_name: Optional[str] = None
+40 |     streak_bonus_days: Optional[int] = None
+   |                        ^^^^^^^^^^^^^
+41 |     streak_bonus_pct: Optional[float] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:41:23
+   |
+39 |     app_name: Optional[str] = None
+40 |     streak_bonus_days: Optional[int] = None
+41 |     streak_bonus_pct: Optional[float] = None
+   |                       ^^^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:56:10
+   |
+55 | class ProfileCreate(ProfileBase):
+56 |     pin: Optional[str] = None  # raw PIN
+   |          ^^^^^^^^^^^^^
+57 |     weekly_reward_base: float = 2.0
+58 |     weekly_reward_full: float = 4.0
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:64:11
+   |
+63 | class ProfileUpdate(BaseModel):
+64 |     name: Optional[str] = None
+   |           ^^^^^^^^^^^^^
+65 |     age: Optional[int] = None
+66 |     avatar: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:65:10
+   |
+63 | class ProfileUpdate(BaseModel):
+64 |     name: Optional[str] = None
+65 |     age: Optional[int] = None
+   |          ^^^^^^^^^^^^^
+66 |     avatar: Optional[str] = None
+67 |     theme: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:66:13
+   |
+64 |     name: Optional[str] = None
+65 |     age: Optional[int] = None
+66 |     avatar: Optional[str] = None
+   |             ^^^^^^^^^^^^^
+67 |     theme: Optional[str] = None
+68 |     level_idx: Optional[int] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:67:12
+   |
+65 |     age: Optional[int] = None
+66 |     avatar: Optional[str] = None
+67 |     theme: Optional[str] = None
+   |            ^^^^^^^^^^^^^
+68 |     level_idx: Optional[int] = None
+69 |     is_active: Optional[bool] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:68:16
+   |
+66 |     avatar: Optional[str] = None
+67 |     theme: Optional[str] = None
+68 |     level_idx: Optional[int] = None
+   |                ^^^^^^^^^^^^^
+69 |     is_active: Optional[bool] = None
+70 |     pin: Optional[str] = None  # raw PIN
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:69:16
+   |
+67 |     theme: Optional[str] = None
+68 |     level_idx: Optional[int] = None
+69 |     is_active: Optional[bool] = None
+   |                ^^^^^^^^^^^^^^
+70 |     pin: Optional[str] = None  # raw PIN
+71 |     weekly_reward_base: Optional[float] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:70:10
+   |
+68 |     level_idx: Optional[int] = None
+69 |     is_active: Optional[bool] = None
+70 |     pin: Optional[str] = None  # raw PIN
+   |          ^^^^^^^^^^^^^
+71 |     weekly_reward_base: Optional[float] = None
+72 |     weekly_reward_full: Optional[float] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:71:25
+   |
+69 |     is_active: Optional[bool] = None
+70 |     pin: Optional[str] = None  # raw PIN
+71 |     weekly_reward_base: Optional[float] = None
+   |                         ^^^^^^^^^^^^^^^
+72 |     weekly_reward_full: Optional[float] = None
+73 |     monthly_reward_desc: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:72:25
+   |
+70 |     pin: Optional[str] = None  # raw PIN
+71 |     weekly_reward_base: Optional[float] = None
+72 |     weekly_reward_full: Optional[float] = None
+   |                         ^^^^^^^^^^^^^^^
+73 |     monthly_reward_desc: Optional[str] = None
+74 |     monthly_min_pct: Optional[float] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:73:26
+   |
+71 |     weekly_reward_base: Optional[float] = None
+72 |     weekly_reward_full: Optional[float] = None
+73 |     monthly_reward_desc: Optional[str] = None
+   |                          ^^^^^^^^^^^^^
+74 |     monthly_min_pct: Optional[float] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> backend\schemas.py:74:22
+   |
+72 |     weekly_reward_full: Optional[float] = None
+73 |     monthly_reward_desc: Optional[str] = None
+74 |     monthly_min_pct: Optional[float] = None
+   |                      ^^^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:107:18
+    |
+106 | class MicroHabitUpdate(BaseModel):
+107 |     description: Optional[str] = None
+    |                  ^^^^^^^^^^^^^
+108 |     sort_order: Optional[int] = None
+109 |     is_active: Optional[bool] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:108:17
+    |
+106 | class MicroHabitUpdate(BaseModel):
+107 |     description: Optional[str] = None
+108 |     sort_order: Optional[int] = None
+    |                 ^^^^^^^^^^^^^
+109 |     is_active: Optional[bool] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:109:16
+    |
+107 |     description: Optional[str] = None
+108 |     sort_order: Optional[int] = None
+109 |     is_active: Optional[bool] = None
+    |                ^^^^^^^^^^^^^^
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:125:19
+    |
+123 |     sort_order: int
+124 |     is_active: bool
+125 |     micro_habits: List[MicroHabitOut] = []
+    |                   ^^^^
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:138:19
+    |
+136 |     motivation: str = ""
+137 |     sort_order: int = 0
+138 |     micro_habits: List[MicroHabitCreate] = []
+    |                   ^^^^
+    |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:142:11
+    |
+141 | class HabitTemplateUpdate(BaseModel):
+142 |     name: Optional[str] = None
+    |           ^^^^^^^^^^^^^
+143 |     icon: Optional[str] = None
+144 |     category: Optional[str] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:143:11
+    |
+141 | class HabitTemplateUpdate(BaseModel):
+142 |     name: Optional[str] = None
+143 |     icon: Optional[str] = None
+    |           ^^^^^^^^^^^^^
+144 |     category: Optional[str] = None
+145 |     stars: Optional[int] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:144:15
+    |
+142 |     name: Optional[str] = None
+143 |     icon: Optional[str] = None
+144 |     category: Optional[str] = None
+    |               ^^^^^^^^^^^^^
+145 |     stars: Optional[int] = None
+146 |     description: Optional[str] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:145:12
+    |
+143 |     icon: Optional[str] = None
+144 |     category: Optional[str] = None
+145 |     stars: Optional[int] = None
+    |            ^^^^^^^^^^^^^
+146 |     description: Optional[str] = None
+147 |     details: Optional[str] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:146:18
+    |
+144 |     category: Optional[str] = None
+145 |     stars: Optional[int] = None
+146 |     description: Optional[str] = None
+    |                  ^^^^^^^^^^^^^
+147 |     details: Optional[str] = None
+148 |     motivation: Optional[str] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:147:14
+    |
+145 |     stars: Optional[int] = None
+146 |     description: Optional[str] = None
+147 |     details: Optional[str] = None
+    |              ^^^^^^^^^^^^^
+148 |     motivation: Optional[str] = None
+149 |     sort_order: Optional[int] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:148:17
+    |
+146 |     description: Optional[str] = None
+147 |     details: Optional[str] = None
+148 |     motivation: Optional[str] = None
+    |                 ^^^^^^^^^^^^^
+149 |     sort_order: Optional[int] = None
+150 |     is_active: Optional[bool] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:149:17
+    |
+147 |     details: Optional[str] = None
+148 |     motivation: Optional[str] = None
+149 |     sort_order: Optional[int] = None
+    |                 ^^^^^^^^^^^^^
+150 |     is_active: Optional[bool] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:150:16
+    |
+148 |     motivation: Optional[str] = None
+149 |     sort_order: Optional[int] = None
+150 |     is_active: Optional[bool] = None
+    |                ^^^^^^^^^^^^^^
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:177:14
+    |
+176 | class RewardTierUpdate(BaseModel):
+177 |     min_pct: Optional[float] = None
+    |              ^^^^^^^^^^^^^^^
+178 |     multiplier: Optional[float] = None
+179 |     label: Optional[str] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:178:17
+    |
+176 | class RewardTierUpdate(BaseModel):
+177 |     min_pct: Optional[float] = None
+178 |     multiplier: Optional[float] = None
+    |                 ^^^^^^^^^^^^^^^
+179 |     label: Optional[str] = None
+180 |     emoji: Optional[str] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:179:12
+    |
+177 |     min_pct: Optional[float] = None
+178 |     multiplier: Optional[float] = None
+179 |     label: Optional[str] = None
+    |            ^^^^^^^^^^^^^
+180 |     emoji: Optional[str] = None
+181 |     sort_order: Optional[int] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:180:12
+    |
+178 |     multiplier: Optional[float] = None
+179 |     label: Optional[str] = None
+180 |     emoji: Optional[str] = None
+    |            ^^^^^^^^^^^^^
+181 |     sort_order: Optional[int] = None
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:181:17
+    |
+179 |     label: Optional[str] = None
+180 |     emoji: Optional[str] = None
+181 |     sort_order: Optional[int] = None
+    |                 ^^^^^^^^^^^^^
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> backend\schemas.py:190:17
+    |
+188 |     habit_id: str
+189 |     done: bool
+190 |     mini_tasks: Dict[str, bool] = Field(default_factory=dict)
+    |                 ^^^^
+    |
+help: Replace with `dict`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:206:13
+    |
+204 | class DayLogIn(BaseModel):
+205 |     date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+206 |     habits: List[HabitEntryIn] = Field(default_factory=list)
+    |             ^^^^
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:226:20
+    |
+224 |     day_done: bool
+225 |     bonus_star: bool
+226 |     habit_entries: List[HabitEntryOut] = []
+    |                    ^^^^
+227 |     created_at: datetime
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:243:15
+    |
+241 |     earned_amount: float
+242 |     currency: str = "$"
+243 |     day_logs: List[DayLogOut] = []
+    |               ^^^^
+    |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:270:12
+    |
+268 |     earned_amount: float
+269 |     reward_paid: bool
+270 |     notes: Optional[str]
+    |            ^^^^^^^^^^^^^
+271 |     created_at: datetime
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:275:12
+    |
+274 | class RewardMarkPaid(BaseModel):
+275 |     notes: Optional[str] = None
+    |            ^^^^^^^^^^^^^
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:315:13
+    |
+313 |     overall_pct: float
+314 |     total_active_days: int
+315 |     habits: List[HabitDashboardItem] = []
+    |             ^^^^
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:331:11
+    |
+329 |     profile_slug: str
+330 |     period: str  # 'weekly' | 'monthly' | 'yearly'
+331 |     data: List[TrendDataPoint]
+    |           ^^^^
+332 |     average_pct: float
+333 |     best_day: Optional[str] = None
+    |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:333:15
+    |
+331 |     data: List[TrendDataPoint]
+332 |     average_pct: float
+333 |     best_day: Optional[str] = None
+    |               ^^^^^^^^^^^^^
+334 |     improvement: Optional[float] = None  # pct change vs previous period
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> backend\schemas.py:334:18
+    |
+332 |     average_pct: float
+333 |     best_day: Optional[str] = None
+334 |     improvement: Optional[float] = None  # pct change vs previous period
+    |                  ^^^^^^^^^^^^^^^
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:344:13
+    |
+342 |     description: str
+343 |     age_range: str
+344 |     habits: List[HabitTemplateCreate] = []
+    |             ^^^^
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> backend\schemas.py:348:17
+    |
+347 | class HabitTemplatesCatalog(BaseModel):
+348 |     categories: List[HabitTemplateCategory]
+    |                 ^^^^
+    |
+help: Replace with `list`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\test_api.py:3:1
+   |
+ 1 |   """Tests for H├íbitosFam API - v2.2.0 Analytics and Templates."""
+ 2 |
+ 3 | / import pytest
+ 4 | | from fastapi.testclient import TestClient
+ 5 | | from sqlalchemy import create_engine
+ 6 | | from sqlalchemy.orm import sessionmaker
+ 7 | | from sqlalchemy.pool import StaticPool
+ 8 | |
+ 9 | | from backend.main import app
+10 | | from backend.database import Base, get_db
+11 | | from backend.crud import seed_default_data
+   | |__________________________________________^
+   |
+help: Organize imports
+
+ANN201 Missing return type annotation for public function `override_get_db`
+  --> backend\test_api.py:25:5
+   |
+25 | def override_get_db():
+   |     ^^^^^^^^^^^^^^^
+26 |     db = TestingSessionLocal()
+27 |     try:
+   |
+help: Add return type annotation
+
+PT003 `scope='function'` is implied in `@pytest.fixture()`
+  --> backend\test_api.py:36:17
+   |
+36 | @pytest.fixture(scope="function")
+   |                 ^^^^^^^^^^^^^^^^
+37 | def db_session():
+38 |     Base.metadata.create_all(bind=engine)
+   |
+help: Remove implied `scope` argument
+
+ANN201 Missing return type annotation for public function `db_session`
+  --> backend\test_api.py:37:5
+   |
+36 | @pytest.fixture(scope="function")
+37 | def db_session():
+   |     ^^^^^^^^^^
+38 |     Base.metadata.create_all(bind=engine)
+39 |     db = TestingSessionLocal()
+   |
+help: Add return type annotation
+
+PT003 `scope='function'` is implied in `@pytest.fixture()`
+  --> backend\test_api.py:46:17
+   |
+46 | @pytest.fixture(scope="function")
+   |                 ^^^^^^^^^^^^^^^^
+47 | def client(db_session):
+48 |     return TestClient(app)
+   |
+help: Remove implied `scope` argument
+
+ANN201 Missing return type annotation for public function `client`
+  --> backend\test_api.py:47:5
+   |
+46 | @pytest.fixture(scope="function")
+47 | def client(db_session):
+   |     ^^^^^^
+48 |     return TestClient(app)
+   |
+help: Add return type annotation
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:47:12
+   |
+46 | @pytest.fixture(scope="function")
+47 | def client(db_session):
+   |            ^^^^^^^^^^
+48 |     return TestClient(app)
+   |
+
+ANN201 Missing return type annotation for public function `test_get_trends_weekly`
+  --> backend\test_api.py:54:9
+   |
+52 |     """Test trend/chart endpoints."""
+53 |
+54 |     def test_get_trends_weekly(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+55 |         response = client.get("/api/profiles/alana/trends?period=weekly")
+56 |         assert response.status_code == 200
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:54:38
+   |
+52 |     """Test trend/chart endpoints."""
+53 |
+54 |     def test_get_trends_weekly(self, client, db_session):
+   |                                      ^^^^^^
+55 |         response = client.get("/api/profiles/alana/trends?period=weekly")
+56 |         assert response.status_code == 200
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:54:46
+   |
+52 |     """Test trend/chart endpoints."""
+53 |
+54 |     def test_get_trends_weekly(self, client, db_session):
+   |                                              ^^^^^^^^^^
+55 |         response = client.get("/api/profiles/alana/trends?period=weekly")
+56 |         assert response.status_code == 200
+   |
+
+ANN201 Missing return type annotation for public function `test_get_trends_monthly`
+  --> backend\test_api.py:63:9
+   |
+61 |         assert "average_pct" in data
+62 |
+63 |     def test_get_trends_monthly(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+64 |         response = client.get("/api/profiles/alana/trends?period=monthly")
+65 |         assert response.status_code == 200
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:63:39
+   |
+61 |         assert "average_pct" in data
+62 |
+63 |     def test_get_trends_monthly(self, client, db_session):
+   |                                       ^^^^^^
+64 |         response = client.get("/api/profiles/alana/trends?period=monthly")
+65 |         assert response.status_code == 200
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:63:47
+   |
+61 |         assert "average_pct" in data
+62 |
+63 |     def test_get_trends_monthly(self, client, db_session):
+   |                                               ^^^^^^^^^^
+64 |         response = client.get("/api/profiles/alana/trends?period=monthly")
+65 |         assert response.status_code == 200
+   |
+
+ANN201 Missing return type annotation for public function `test_get_trends_yearly`
+  --> backend\test_api.py:69:9
+   |
+67 |         assert data["period"] == "monthly"
+68 |
+69 |     def test_get_trends_yearly(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+70 |         response = client.get("/api/profiles/alana/trends?period=yearly")
+71 |         assert response.status_code == 200
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:69:38
+   |
+67 |         assert data["period"] == "monthly"
+68 |
+69 |     def test_get_trends_yearly(self, client, db_session):
+   |                                      ^^^^^^
+70 |         response = client.get("/api/profiles/alana/trends?period=yearly")
+71 |         assert response.status_code == 200
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:69:46
+   |
+67 |         assert data["period"] == "monthly"
+68 |
+69 |     def test_get_trends_yearly(self, client, db_session):
+   |                                              ^^^^^^^^^^
+70 |         response = client.get("/api/profiles/alana/trends?period=yearly")
+71 |         assert response.status_code == 200
+   |
+
+ANN201 Missing return type annotation for public function `test_get_trends_invalid_period`
+  --> backend\test_api.py:75:9
+   |
+73 |         assert data["period"] == "yearly"
+74 |
+75 |     def test_get_trends_invalid_period(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+76 |         response = client.get("/api/profiles/alana/trends?period=invalid")
+77 |         assert response.status_code == 400
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:75:46
+   |
+73 |         assert data["period"] == "yearly"
+74 |
+75 |     def test_get_trends_invalid_period(self, client, db_session):
+   |                                              ^^^^^^
+76 |         response = client.get("/api/profiles/alana/trends?period=invalid")
+77 |         assert response.status_code == 400
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:75:54
+   |
+73 |         assert data["period"] == "yearly"
+74 |
+75 |     def test_get_trends_invalid_period(self, client, db_session):
+   |                                                      ^^^^^^^^^^
+76 |         response = client.get("/api/profiles/alana/trends?period=invalid")
+77 |         assert response.status_code == 400
+   |
+
+ANN201 Missing return type annotation for public function `test_get_trends_profile_not_found`
+  --> backend\test_api.py:79:9
+   |
+77 |         assert response.status_code == 400
+78 |
+79 |     def test_get_trends_profile_not_found(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+80 |         response = client.get("/api/profiles/nonexistent/trends")
+81 |         assert response.status_code == 404
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:79:49
+   |
+77 |         assert response.status_code == 400
+78 |
+79 |     def test_get_trends_profile_not_found(self, client, db_session):
+   |                                                 ^^^^^^
+80 |         response = client.get("/api/profiles/nonexistent/trends")
+81 |         assert response.status_code == 404
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:79:57
+   |
+77 |         assert response.status_code == 400
+78 |
+79 |     def test_get_trends_profile_not_found(self, client, db_session):
+   |                                                         ^^^^^^^^^^
+80 |         response = client.get("/api/profiles/nonexistent/trends")
+81 |         assert response.status_code == 404
+   |
+
+ANN201 Missing return type annotation for public function `test_get_templates_catalog`
+  --> backend\test_api.py:87:9
+   |
+85 |     """Test habit templates catalog endpoint."""
+86 |
+87 |     def test_get_templates_catalog(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+88 |         response = client.get("/api/admin/templates/catalog")
+89 |         assert response.status_code == 200
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:87:42
+   |
+85 |     """Test habit templates catalog endpoint."""
+86 |
+87 |     def test_get_templates_catalog(self, client, db_session):
+   |                                          ^^^^^^
+88 |         response = client.get("/api/admin/templates/catalog")
+89 |         assert response.status_code == 200
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:87:50
+   |
+85 |     """Test habit templates catalog endpoint."""
+86 |
+87 |     def test_get_templates_catalog(self, client, db_session):
+   |                                                  ^^^^^^^^^^
+88 |         response = client.get("/api/admin/templates/catalog")
+89 |         assert response.status_code == 200
+   |
+
+ANN201 Missing return type annotation for public function `test_templates_have_required_fields`
+  --> backend\test_api.py:94:9
+   |
+92 |         assert len(data["categories"]) > 0
+93 |
+94 |     def test_templates_have_required_fields(self, client, db_session):
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+95 |         response = client.get("/api/admin/templates/catalog")
+96 |         data = response.json()
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+  --> backend\test_api.py:94:51
+   |
+92 |         assert len(data["categories"]) > 0
+93 |
+94 |     def test_templates_have_required_fields(self, client, db_session):
+   |                                                   ^^^^^^
+95 |         response = client.get("/api/admin/templates/catalog")
+96 |         data = response.json()
+   |
+
+ANN001 Missing type annotation for function argument `db_session`
+  --> backend\test_api.py:94:59
+   |
+92 |         assert len(data["categories"]) > 0
+93 |
+94 |     def test_templates_have_required_fields(self, client, db_session):
+   |                                                           ^^^^^^^^^^
+95 |         response = client.get("/api/admin/templates/catalog")
+96 |         data = response.json()
+   |
+
+ANN201 Missing return type annotation for public function `test_close_current_month`
+   --> backend\test_api.py:107:9
+    |
+105 |     """Test month auto-close endpoint."""
+106 |
+107 |     def test_close_current_month(self, client, db_session, monkeypatch):
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+108 |         # Mock admin PIN
+109 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:107:40
+    |
+105 |     """Test month auto-close endpoint."""
+106 |
+107 |     def test_close_current_month(self, client, db_session, monkeypatch):
+    |                                        ^^^^^^
+108 |         # Mock admin PIN
+109 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+    |
+
+ANN001 Missing type annotation for function argument `db_session`
+   --> backend\test_api.py:107:48
+    |
+105 |     """Test month auto-close endpoint."""
+106 |
+107 |     def test_close_current_month(self, client, db_session, monkeypatch):
+    |                                                ^^^^^^^^^^
+108 |         # Mock admin PIN
+109 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+    |
+
+ANN001 Missing type annotation for function argument `monkeypatch`
+   --> backend\test_api.py:107:60
+    |
+105 |     """Test month auto-close endpoint."""
+106 |
+107 |     def test_close_current_month(self, client, db_session, monkeypatch):
+    |                                                            ^^^^^^^^^^^
+108 |         # Mock admin PIN
+109 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+    |
+
+ANN201 Missing return type annotation for public function `test_close_specific_month`
+   --> backend\test_api.py:122:9
+    |
+120 |         assert "reward_unlocked" in data
+121 |
+122 |     def test_close_specific_month(self, client, db_session, monkeypatch):
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+123 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+124 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:122:41
+    |
+120 |         assert "reward_unlocked" in data
+121 |
+122 |     def test_close_specific_month(self, client, db_session, monkeypatch):
+    |                                         ^^^^^^
+123 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+124 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+
+ANN001 Missing type annotation for function argument `db_session`
+   --> backend\test_api.py:122:49
+    |
+120 |         assert "reward_unlocked" in data
+121 |
+122 |     def test_close_specific_month(self, client, db_session, monkeypatch):
+    |                                                 ^^^^^^^^^^
+123 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+124 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+
+ANN001 Missing type annotation for function argument `monkeypatch`
+   --> backend\test_api.py:122:61
+    |
+120 |         assert "reward_unlocked" in data
+121 |
+122 |     def test_close_specific_month(self, client, db_session, monkeypatch):
+    |                                                             ^^^^^^^^^^^
+123 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+124 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+
+ANN201 Missing return type annotation for public function `test_close_month_without_auth`
+   --> backend\test_api.py:132:9
+    |
+130 |         assert response.status_code == 200
+131 |
+132 |     def test_close_month_without_auth(self, client, db_session):
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+133 |         response = client.post("/api/admin/profiles/alana/close-current-month")
+134 |         assert response.status_code == 401
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:132:45
+    |
+130 |         assert response.status_code == 200
+131 |
+132 |     def test_close_month_without_auth(self, client, db_session):
+    |                                             ^^^^^^
+133 |         response = client.post("/api/admin/profiles/alana/close-current-month")
+134 |         assert response.status_code == 401
+    |
+
+ANN001 Missing type annotation for function argument `db_session`
+   --> backend\test_api.py:132:53
+    |
+130 |         assert response.status_code == 200
+131 |
+132 |     def test_close_month_without_auth(self, client, db_session):
+    |                                                     ^^^^^^^^^^
+133 |         response = client.post("/api/admin/profiles/alana/close-current-month")
+134 |         assert response.status_code == 401
+    |
+
+ANN201 Missing return type annotation for public function `test_reorder_habits`
+   --> backend\test_api.py:140:9
+    |
+138 |     """Test habit reordering endpoint."""
+139 |
+140 |     def test_reorder_habits(self, client, db_session, monkeypatch):
+    |         ^^^^^^^^^^^^^^^^^^^
+141 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+142 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:140:35
+    |
+138 |     """Test habit reordering endpoint."""
+139 |
+140 |     def test_reorder_habits(self, client, db_session, monkeypatch):
+    |                                   ^^^^^^
+141 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+142 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+
+ANN001 Missing type annotation for function argument `db_session`
+   --> backend\test_api.py:140:43
+    |
+138 |     """Test habit reordering endpoint."""
+139 |
+140 |     def test_reorder_habits(self, client, db_session, monkeypatch):
+    |                                           ^^^^^^^^^^
+141 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+142 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+
+ANN001 Missing type annotation for function argument `monkeypatch`
+   --> backend\test_api.py:140:55
+    |
+138 |     """Test habit reordering endpoint."""
+139 |
+140 |     def test_reorder_habits(self, client, db_session, monkeypatch):
+    |                                                       ^^^^^^^^^^^
+141 |         monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
+142 |         monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+    |
+
+ANN201 Missing return type annotation for public function `test_reorder_without_auth`
+   --> backend\test_api.py:163:9
+    |
+161 |             assert response.status_code == 200
+162 |
+163 |     def test_reorder_without_auth(self, client, db_session):
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+164 |         response = client.post(
+165 |             "/api/admin/profiles/alana/habits/reorder", json={"orders": []}
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:163:41
+    |
+161 |             assert response.status_code == 200
+162 |
+163 |     def test_reorder_without_auth(self, client, db_session):
+    |                                         ^^^^^^
+164 |         response = client.post(
+165 |             "/api/admin/profiles/alana/habits/reorder", json={"orders": []}
+    |
+
+ANN001 Missing type annotation for function argument `db_session`
+   --> backend\test_api.py:163:49
+    |
+161 |             assert response.status_code == 200
+162 |
+163 |     def test_reorder_without_auth(self, client, db_session):
+    |                                                 ^^^^^^^^^^
+164 |         response = client.post(
+165 |             "/api/admin/profiles/alana/habits/reorder", json={"orders": []}
+    |
+
+ANN201 Missing return type annotation for public function `test_health_endpoint`
+   --> backend\test_api.py:173:9
+    |
+171 |     """Verify existing endpoints still work."""
+172 |
+173 |     def test_health_endpoint(self, client):
+    |         ^^^^^^^^^^^^^^^^^^^^
+174 |         response = client.get("/api/health-public")
+175 |         assert response.status_code == 200
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:173:36
+    |
+171 |     """Verify existing endpoints still work."""
+172 |
+173 |     def test_health_endpoint(self, client):
+    |                                    ^^^^^^
+174 |         response = client.get("/api/health-public")
+175 |         assert response.status_code == 200
+    |
+
+ANN201 Missing return type annotation for public function `test_login_valid_pin`
+   --> backend\test_api.py:178:9
+    |
+176 |         assert response.json()["status"] == "ok"
+177 |
+178 |     def test_login_valid_pin(self, client, db_session):
+    |         ^^^^^^^^^^^^^^^^^^^^
+179 |         response = client.post("/api/auth/login", json={"pin": "1234"})
+180 |         assert response.status_code == 200
+    |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `client`
+   --> backend\test_api.py:178:36
+    |
+176 |         assert response.json()["status"] == "ok"
+177 |
+178 |     def test_login_valid_pin(self, client, db_session):
+    |                                    ^^^^^^
+179 |         response = client.post("/api/auth/login", json={"pin": "1234"})
+180 |         assert response.status_code == 200
+    |
+
+ANN001 Missing type annotation for function argument `db_session`
+   --> backend\test_api.py:178:44
+    |
+176 |         assert response.json()["status"] == "ok"
+177 |
+178 |     def test_login_valid_pin(self, client, db_session):
+    |                                            ^^^^^^^^^^
+179 |         response = client.post("/api/auth/login", json={"pin": "1234"})
+180 |         assert response.status_code == 200
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> backend\tests\test_functional.py:1:1
+  |
+1 | / import pytest
+2 | | from fastapi.testclient import TestClient
+3 | | from sqlalchemy import create_engine
+4 | | from sqlalchemy.orm import sessionmaker
+5 | | from backend.main import app
+6 | | from backend.database import Base, get_db
+7 | | from backend import crud
+  | |________________________^
+8 |
+9 |   # Setup test DB
+  |
+help: Organize imports
+
+E501 Line too long (90 > 88)
+  --> backend\tests\test_functional.py:11:89
+   |
+ 9 | # Setup test DB
+10 | SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+11 | engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+   |                                                                                         ^^
+12 | TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+   |
+
+ANN201 Missing return type annotation for public function `override_get_db`
+  --> backend\tests\test_functional.py:14:5
+   |
+12 | TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+13 |
+14 | def override_get_db():
+   |     ^^^^^^^^^^^^^^^
+15 |     try:
+16 |         db = TestingSessionLocal()
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `setup_db`
+  --> backend\tests\test_functional.py:25:5
+   |
+24 | @pytest.fixture(autouse=True)
+25 | def setup_db():
+   |     ^^^^^^^^
+26 |     from backend.database import engine
+27 |     Base.metadata.create_all(bind=engine)
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `test_public_health`
+  --> backend\tests\test_functional.py:33:5
+   |
+31 |     Base.metadata.drop_all(bind=engine)
+32 |
+33 | def test_public_health():
+   |     ^^^^^^^^^^^^^^^^^^
+34 |     response = client.get("/api/health-public")
+35 |     assert response.status_code == 200
+   |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `test_login_flow`
+  --> backend\tests\test_functional.py:38:5
+   |
+36 |     assert response.json()["status"] == "ok"
+37 |
+38 | def test_login_flow():
+   |     ^^^^^^^^^^^^^^^
+39 |     # Login as admin (default seed PIN 1234)
+40 |     response = client.post("/api/auth/login", json={"pin": "1234"})
+   |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `test_fetch_profiles`
+  --> backend\tests\test_functional.py:46:5
+   |
+44 |     assert data["role"] == "admin"
+45 |
+46 | def test_fetch_profiles():
+   |     ^^^^^^^^^^^^^^^^^^^
+47 |     response = client.get("/api/profiles")
+48 |     assert response.status_code == 200
+   |
+help: Add return type annotation: `None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> backend\tests\test_unit.py:1:1
+  |
+1 | / import pytest
+2 | | from sqlalchemy import create_engine
+3 | | from sqlalchemy.orm import sessionmaker
+4 | | from backend.database import Base
+5 | | from backend import models, crud, schemas
+6 | | from backend.data_config import _hash_pin
+  | |_________________________________________^
+7 |
+8 |   # In-memory database for testing
+  |
+help: Organize imports
+
+E501 Line too long (90 > 88)
+  --> backend\tests\test_unit.py:10:89
+   |
+ 8 | # In-memory database for testing
+ 9 | SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+10 | engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+   |                                                                                         ^^
+11 | TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+   |
+
+ANN201 Missing return type annotation for public function `db`
+  --> backend\tests\test_unit.py:14:5
+   |
+13 | @pytest.fixture
+14 | def db():
+   |     ^^
+15 |     Base.metadata.create_all(bind=engine)
+16 |     session = TestingSessionLocal()
+   |
+help: Add return type annotation
+
+ANN201 Missing return type annotation for public function `test_pin_hashing`
+  --> backend\tests\test_unit.py:23:5
+   |
+21 |         Base.metadata.drop_all(bind=engine)
+22 |
+23 | def test_pin_hashing():
+   |     ^^^^^^^^^^^^^^^^
+24 |     pin = "1234"
+25 |     hashed = _hash_pin(pin)
+   |
+help: Add return type annotation: `None`
+
+ANN201 Missing return type annotation for public function `test_verify_pin_admin`
+  --> backend\tests\test_unit.py:29:5
+   |
+27 |     assert len(hashed) == 64  # SHA-256 hex length
+28 |
+29 | def test_verify_pin_admin(db):
+   |     ^^^^^^^^^^^^^^^^^^^^^
+30 |     # Setup AppSettings with a known admin PIN
+31 |     admin_pin = "4321"
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `db`
+  --> backend\tests\test_unit.py:29:27
+   |
+27 |     assert len(hashed) == 64  # SHA-256 hex length
+28 |
+29 | def test_verify_pin_admin(db):
+   |                           ^^
+30 |     # Setup AppSettings with a known admin PIN
+31 |     admin_pin = "4321"
+   |
+
+W293 [*] Blank line contains whitespace
+  --> backend\tests\test_unit.py:35:1
+   |
+33 |     db.add(models.AppSettings(id=1, admin_pin_hash=hashed_admin, app_name="Test App"))
+34 |     db.commit()
+35 |     
+   | ^^^^
+36 |     result = crud.verify_pin(db, admin_pin)
+37 |     assert result is not None
+   |
+help: Remove whitespace from blank line
+
+ANN201 Missing return type annotation for public function `test_create_and_get_profile`
+  --> backend\tests\test_unit.py:41:5
+   |
+39 |     assert result["profile_slug"] is None
+40 |
+41 | def test_create_and_get_profile(db):
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+42 |     profile_data = schemas.ProfileCreate(
+43 |         slug="testchild",
+   |
+help: Add return type annotation: `None`
+
+ANN001 Missing type annotation for function argument `db`
+  --> backend\tests\test_unit.py:41:33
+   |
+39 |     assert result["profile_slug"] is None
+40 |
+41 | def test_create_and_get_profile(db):
+   |                                 ^^
+42 |     profile_data = schemas.ProfileCreate(
+43 |         slug="testchild",
+   |
+
+W293 [*] Blank line contains whitespace
+  --> backend\tests\test_unit.py:49:1
+   |
+47 |     )
+48 |     crud.create_profile(db, profile_data)
+49 |     
+   | ^^^^
+50 |     profile = crud.get_profile_by_slug(db, "testchild")
+51 |     assert profile is not None
+   |
+help: Remove whitespace from blank line
+
+Found 319 errors.
+[*] 90 fixable with the `--fix` option (44 hidden fixes can be enabled with the `--unsafe-fixes` option).

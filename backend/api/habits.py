@@ -1,15 +1,11 @@
-"""
-HábitosFam – backend/api/habits.py  (v3)
-REST endpoints for habits, daily logs, auth, and dashboard.
-"""
+from datetime import date
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import date
 
-from ..database import get_db
 from .. import crud, schemas
+from ..database import get_db
 
 router = APIRouter(prefix="/api", tags=["habits"])
 
@@ -18,7 +14,7 @@ router = APIRouter(prefix="/api", tags=["habits"])
 
 
 @router.post("/auth/login", response_model=schemas.PinLoginOut)
-def login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
+def login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)) -> schemas.PinLoginOut:
     """Unified login: returns role (admin/user) and profile scope."""
     result = crud.verify_pin(db, payload.pin)
     if not result:
@@ -36,7 +32,7 @@ def login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
 
 
 @router.get("/settings", response_model=schemas.AppSettingsOut)
-def get_settings(db: Session = Depends(get_db)):
+def get_settings(db: Session = Depends(get_db)) -> Any:
     cfg = crud.get_app_settings(db)
     if not cfg:
         return schemas.AppSettingsOut(
@@ -51,8 +47,8 @@ def get_settings(db: Session = Depends(get_db)):
 # ── Profiles ──────────────────────────────────────────────────
 
 
-@router.get("/profiles", response_model=List[schemas.ProfileOut])
-def list_profiles(db: Session = Depends(get_db)):
+@router.get("/profiles", response_model=list[schemas.ProfileOut])
+def list_profiles(db: Session = Depends(get_db)) -> list[schemas.ProfileOut]:
     profiles = crud.get_profiles(db)
     result = []
     for p in profiles:
@@ -63,7 +59,7 @@ def list_profiles(db: Session = Depends(get_db)):
 
 
 @router.get("/profiles/{slug}", response_model=schemas.ProfileOut)
-def get_profile(slug: str, db: Session = Depends(get_db)):
+def get_profile(slug: str, db: Session = Depends(get_db)) -> schemas.ProfileOut:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -76,9 +72,9 @@ def get_profile(slug: str, db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/profiles/{slug}/habits-config", response_model=List[schemas.HabitTemplateOut]
+    "/profiles/{slug}/habits-config", response_model=list[schemas.HabitTemplateOut]
 )
-def get_habits_config(slug: str, db: Session = Depends(get_db)):
+def get_habits_config(slug: str, db: Session = Depends(get_db)) -> Any:
     """Get habit templates + micro-habits for a profile from DB."""
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
@@ -86,10 +82,10 @@ def get_habits_config(slug: str, db: Session = Depends(get_db)):
     return crud.get_habit_templates(db, profile.id)
 
 
-@router.get("/profiles/{slug}/reward-tiers", response_model=List[schemas.RewardTierOut])
+@router.get("/profiles/{slug}/reward-tiers", response_model=list[schemas.RewardTierOut])
 def get_reward_tiers(
     slug: str, tier_type: str = "weekly", db: Session = Depends(get_db)
-):
+) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -100,7 +96,7 @@ def get_reward_tiers(
 
 
 @router.get("/profiles/{slug}/today", response_model=schemas.DayLogOut)
-def get_today_log(slug: str, db: Session = Depends(get_db)):
+def get_today_log(slug: str, db: Session = Depends(get_db)) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -130,7 +126,7 @@ def get_today_log(slug: str, db: Session = Depends(get_db)):
 @router.post(
     "/profiles/{slug}/habits", response_model=schemas.DayLogOut, status_code=201
 )
-def save_habits(slug: str, payload: schemas.DayLogIn, db: Session = Depends(get_db)):
+def save_habits(slug: str, payload: schemas.DayLogIn, db: Session = Depends(get_db)) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -141,7 +137,7 @@ def save_habits(slug: str, payload: schemas.DayLogIn, db: Session = Depends(get_
 @router.post("/profiles/{slug}/complete-day", response_model=schemas.DayLogOut)
 def complete_day(
     slug: str, payload: schemas.DayCompleteIn, db: Session = Depends(get_db)
-):
+) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -161,8 +157,8 @@ def complete_day(
 
 @router.get("/profiles/{slug}/week", response_model=schemas.WeekStatsOut)
 def get_week_stats(
-    slug: str, week_start: Optional[str] = None, db: Session = Depends(get_db)
-):
+    slug: str, week_start: str | None = None, db: Session = Depends(get_db)
+) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -171,8 +167,8 @@ def get_week_stats(
 
 @router.get("/profiles/{slug}/month", response_model=schemas.MonthStatsOut)
 def get_month_stats(
-    slug: str, month_key: Optional[str] = None, db: Session = Depends(get_db)
-):
+    slug: str, month_key: str | None = None, db: Session = Depends(get_db)
+) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -180,7 +176,7 @@ def get_month_stats(
 
 
 @router.get("/profiles/{slug}/streak")
-def get_streak(slug: str, db: Session = Depends(get_db)):
+def get_streak(slug: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -192,7 +188,7 @@ def get_streak(slug: str, db: Session = Depends(get_db)):
 
 
 @router.get("/profiles/{slug}/dashboard", response_model=schemas.ProfileDashboardOut)
-def get_dashboard(slug: str, db: Session = Depends(get_db)):
+def get_dashboard(slug: str, db: Session = Depends(get_db)) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
@@ -207,7 +203,7 @@ def get_trends(
     slug: str,
     period: str = "weekly",  # 'weekly' | 'monthly' | 'yearly'
     db: Session = Depends(get_db),
-):
+) -> Any:
     """Get trend data for charts (daily completion rates)."""
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
