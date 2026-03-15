@@ -1,4 +1,4 @@
-<!-- Version: 2.1.1 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.2.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -9,6 +9,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 ## [Unreleased]
+
+## [2.2.0] - 2026-03-15
+
+### Added
+- **Gráficos de Tendencia** — `GET /api/profiles/{slug}/trends` con Chart.js para visualizar cumplimiento semanal/mensual/anual
+- **Catálogo de Plantillas** — `GET /api/admin/templates/catalog` con hábitos predefinidos por edad (Higiene, Estudio, Deporte)
+- **Editor Drag & Drop** — Reordenar hábitos arrastrando en el panel admin con `POST /api/admin/profiles/{slug}/habits/reorder`
+- **Cierre de Mes Automático** — `POST /api/admin/profiles/{slug}/close-month` y `close-current-month` para consolidar recompensas mensuales
+- **Migraciones Alembic** — Configuración en `migrations/` para versionado formal del esquema de DB
+- **Pruebas Unitarias** — `backend/test_api.py` con tests para tendencias, templates, month-close, reorder y endpoints existentes
+
+### Changed
+- `backend/schemas.py` — Nuevos esquemas: `TrendResponse`, `MonthCloseResult`, `HabitTemplatesCatalog`
+- `backend/crud.py` — Nuevas funciones: `get_trend_data()`, `close_month()`, `get_habit_templates_catalog()`
+- `backend/api/habits.py` — Endpoint `GET /profiles/{slug}/trends`
+- `backend/api/admin.py` — Endpoints: `GET /templates/catalog`, `POST /close-month`, `POST /close-current-month`, `POST /habits/reorder`
+- `app.js` — Gráficos Chart.js con selector de periodo y estadísticas de tendencia
+- `admin.js` — Drag & drop para reorder de hábitos
+- `styles.css` — Estilos para trends charts, drag & drop, templates catalog
+
+---
 
 ## [2.1.1] - 2026-03-15
 

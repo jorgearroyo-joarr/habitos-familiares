@@ -336,6 +336,11 @@ function buildProfileSections(visibleProfiles) {
             <h3>📊 Mi Dashboard</h3>
             <div class="dashboard-grid" id="${p.slug}-dashboard-grid"></div>
         </div>
+
+        <!-- Trends Button -->
+        <button class="complete-day-btn ${p.slug}-btn" id="${p.slug}-trends-btn" onclick="showTrendsTab('${p.slug}')">
+            📈 Ver Tendencias
+        </button>
         `;
 
         main.insertBefore(section, famSection);
@@ -1086,6 +1091,151 @@ function launchMiniConfetti(cx, cy) {
         else ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     animate();
+}
+
+// ── Charts / Analytics ──────────────────────────
+
+let trendChart = null;
+
+async function loadTrendsChart(slug) {
+    const container = document.getElementById(`${slug}-trends-container`);
+    if (!container) return;
+
+    try {
+        const period = container.dataset.period || 'weekly';
+        const data = await api(`/api/profiles/${slug}/trends?period=${period}`);
+        
+        const ctx = document.getElementById(`${slug}-trend-chart`).getContext('2d');
+        
+        if (trendChart) trendChart.destroy();
+        
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const textColor = isLight ? '#1e293b' : '#f1f5f9';
+        const gridColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+        
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.data.map(d => {
+                    const date = new Date(d.date);
+                    return `${date.getDate()}/${date.getMonth() + 1}`;
+                }),
+                datasets: [{
+                    label: '% Completado',
+                    data: data.data.map(d => (d.pct * 100).toFixed(0)),
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#a855f7',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: textColor } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.parsed.y}% completado`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: textColor, maxTicksLimit: 7 },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: { 
+                            color: textColor,
+                            callback: (v) => v + '%'
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+
+        // Update stats
+        const avgEl = document.getElementById(`${slug}-trend-avg`);
+        const bestEl = document.getElementById(`${slug}-trend-best`);
+        const impEl = document.getElementById(`${slug}-trend-improvement`);
+        
+        if (avgEl) avgEl.textContent = `${(data.average_pct * 100).toFixed(0)}%`;
+        if (bestEl) bestEl.textContent = data.best_day || 'N/A';
+        if (impEl) {
+            if (data.improvement !== null) {
+                const sign = data.improvement >= 0 ? '+' : '';
+                impEl.textContent = `${sign}${data.improvement.toFixed(1)}%`;
+                impEl.className = data.improvement >= 0 ? 'trend-up' : 'trend-down';
+            } else {
+                impEl.textContent = 'N/A';
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to load trends', e);
+    }
+}
+
+function showTrendsTab(slug) {
+    const section = document.getElementById(`profile-${slug}`);
+    if (!section) return;
+    
+    // Create trends tab content if not exists
+    let trendsTab = document.getElementById(`${slug}-trends-tab`);
+    if (!trendsTab) {
+        trendsTab = document.createElement('div');
+        trendsTab.id = `${slug}-trends-tab`;
+        trendsTab.className = 'trends-tab';
+        trendsTab.innerHTML = `
+            <div class="trends-header">
+                <h3>📊 Tendencias</h3>
+                <div class="period-selector">
+                    <button class="period-btn active" data-period="weekly" onclick="setTrendPeriod('${slug}', 'weekly')">Semana</button>
+                    <button class="period-btn" data-period="monthly" onclick="setTrendPeriod('${slug}', 'monthly')">Mes</button>
+                    <button class="period-btn" data-period="yearly" onclick="setTrendPeriod('${slug}', 'yearly')">Año</button>
+                </div>
+            </div>
+            <div class="trends-stats">
+                <div class="trend-stat">
+                    <span class="trend-label">Promedio</span>
+                    <span class="trend-value" id="${slug}-trend-avg">--</span>
+                </div>
+                <div class="trend-stat">
+                    <span class="trend-label">Mejor día</span>
+                    <span class="trend-value" id="${slug}-trend-best">--</span>
+                </div>
+                <div class="trend-stat">
+                    <span class="trend-label">Mejora</span>
+                    <span class="trend-value" id="${slug}-trend-improvement">--</span>
+                </div>
+            </div>
+            <div class="trends-chart-container" id="${slug}-trends-container" data-period="weekly">
+                <canvas id="${slug}-trend-chart"></canvas>
+            </div>
+        `;
+        section.appendChild(trendsTab);
+    }
+    
+    // Load chart
+    loadTrendsChart(slug);
+}
+
+function setTrendPeriod(slug, period) {
+    const container = document.getElementById(`${slug}-trends-container`);
+    if (container) container.dataset.period = period;
+    
+    // Update buttons
+    const buttons = document.querySelectorAll(`#${slug}-trends-tab .period-btn`);
+    buttons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.period === period);
+    });
+    
+    loadTrendsChart(slug);
 }
 
 // ── Boot ─────────────────────────────────────

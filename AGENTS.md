@@ -1,4 +1,4 @@
-<!-- Version: 2.1.0 | Updated: 2026-03-15 | Standard: AGENTS.md 2025 -->
+<!-- Version: 2.2.0 | Updated: 2026-03-15 | Standard: AGENTS.md 2025 -->
 
 # AGENTS.md – HábitosFam
 

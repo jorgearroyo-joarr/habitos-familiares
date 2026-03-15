@@ -1,10 +1,10 @@
 # 🗺️ HábitosFam – Roadmap Estratégico
 
-> **Versión actual:** v2.1.1 · **Última actualización:** Marzo 2026
+> **Versión actual:** v2.2.0 · **Última actualización:** Marzo 2026
 
 ---
 
-## ✅ Estado actual (v2.1.1)
+## ✅ Estado actual (v2.2.0)
 
 - [x] App web gamificada (HTML/CSS/JS) con diseño premium dark-mode
 - [x] Gestión Dinámica de Perfiles (CRUD ilimitado)
@@ -23,16 +23,16 @@
 - [x] **[v2.1.1]** Modo oscuro/claro (toggle con persistencia)
 - [x] **[v2.1.1]** Backups Automáticos (antes de operaciones críticas)
 - [x] **[v2.1.1]** Favicon y PWA manifest (instalable en móvil)
+- [x] **[v2.2.0]** Gráficos de Tendencia (Chart.js con periodo semanal/mensual/anual)
+- [x] **[v2.2.0]** Catálogo de Plantillas (Higiene, Estudio, Deporte por edad)
+- [x] **[v2.2.0]** Editor Drag & Drop (reordenar hábitos en admin)
+- [x] **[v2.2.0]** Cierre de Mes Automático (consolidación de recompensas)
+- [x] **[v2.2.0]** Migraciones Alembic (versionado formal del esquema)
+- [x] **[v2.2.0]** Pruebas Unitarias (test_api.py con pytest)
 
 ---
 
-## 🚧 v2.2.0 – Analítica y Plantillas (Próximas 2-4 semanas)
-
-- [ ] **Gráficos de Tendencia**: Integrar `Chart.js` para visualizar el cumplimiento semanal/mensual.
-- [ ] **Catálogo de Plantillas**: Hábitos predefinidos por edad (Higiene, Estudio, Deporte).
-- [ ] **Editor Drag & Drop**: Reordenar hábitos y categorías arrastrando elementos en admin.
-- [ ] **Cierre de Mes Automático**: Consolidación de recompensas sin intervención manual.
-- [ ] **Migraciones con Alembic**: Versionado formal del esquema de base de datos.
+## 🚧 v3.0.0 – Migración Cloud y Movilidad (Próximas 2-4 semanas)
 
 ---
 

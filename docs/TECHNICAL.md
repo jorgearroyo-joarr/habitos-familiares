@@ -1,4 +1,4 @@
-<!-- Version: 2.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.2.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # HábitosFam – Documentación Técnica
 
 > Stack: FastAPI · SQLAlchemy · SQLite (pronto: PostgreSQL/MySQL) · HTML/CSS/JS vanilla
@@ -139,6 +139,7 @@ Sin cambios — misma estructura v2.
 | GET | `/api/profiles/{slug}/month` | Stats mensuales |
 | GET | `/api/profiles/{slug}/streak` | Racha actual |
 | GET | `/api/profiles/{slug}/dashboard` | Dashboard con data agregada |
+| GET | `/api/profiles/{slug}/trends?period=weekly|monthly|yearly` | Gráficos de tendencia (Chart.js) |
 
 ### Endpoints admin (requieren header `X-Admin-Pin`)
 | Método | URL | Descripción |
@@ -160,6 +161,10 @@ Sin cambios — misma estructura v2.
 | GET | `/api/admin/export/csv` | Exportar datos CSV |
 | POST | `/api/admin/seed` | Datos semilla |
 | POST | `/api/admin/reset-all-data` | Borrado de logs y recompensas |
+| GET | `/api/admin/templates/catalog` | Catálogo de plantillas de hábitos |
+| POST | `/api/admin/profiles/{slug}/close-month` | Cerrar mes específico |
+| POST | `/api/admin/profiles/{slug}/close-current-month` | Cerrar mes actual |
+| POST | `/api/admin/profiles/{slug}/habits/reorder` | Reordenar hábitos (drag & drop) |
 
 📖 **Documentación interactiva**: `http://localhost:8765/api/docs`
 

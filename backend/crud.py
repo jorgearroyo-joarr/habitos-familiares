@@ -706,6 +706,318 @@ def get_export_data(db: Session):
     ]
 
 
+# ── Trends / Charts ────────────────────────────────────────────
+
+
+def get_trend_data(db: Session, profile: models.Profile, period: str):
+    """Get daily trend data for charts."""
+    from datetime import timedelta
+
+    today = date.today()
+    if period == "weekly":
+        start_date = today - timedelta(days=6)
+        days = 7
+    elif period == "monthly":
+        start_date = today - timedelta(days=29)
+        days = 30
+    else:  # yearly
+        start_date = today - timedelta(days=364)
+        days = 365
+
+    logs = (
+        db.query(models.DayLog)
+        .filter(
+            models.DayLog.profile_id == profile.id,
+            models.DayLog.date >= start_date.isoformat(),
+            models.DayLog.date <= today.isoformat(),
+        )
+        .order_by(models.DayLog.date)
+        .all()
+    )
+
+    log_map = {log.date: log for log in logs}
+    data = []
+    for i in range(days):
+        d = start_date + timedelta(days=i)
+        d_str = d.isoformat()
+        log = log_map.get(d_str)
+        if log:
+            data.append(
+                schemas.TrendDataPoint(
+                    date=d_str,
+                    completed=log.completed_count,
+                    total=log.total,
+                    pct=log.pct,
+                )
+            )
+        else:
+            data.append(
+                schemas.TrendDataPoint(
+                    date=d_str,
+                    completed=0,
+                    total=0,
+                    pct=0.0,
+                )
+            )
+
+    # Calculate stats
+    valid_days = [d for d in data if d.total > 0]
+    avg_pct = sum(d.pct for d in valid_days) / len(valid_days) if valid_days else 0
+    best = max(valid_days, key=lambda d: d.pct, default=None)
+
+    # Compare with previous period
+    prev_start = start_date - timedelta(days=days)
+    prev_logs = (
+        db.query(models.DayLog)
+        .filter(
+            models.DayLog.profile_id == profile.id,
+            models.DayLog.date >= prev_start.isoformat(),
+            models.DayLog.date < start_date.isoformat(),
+        )
+        .all()
+    )
+    prev_valid = [log for log in prev_logs if log.total > 0]
+    prev_avg = sum(log.pct for log in prev_valid) / len(prev_valid) if prev_valid else 0
+    improvement = ((avg_pct - prev_avg) / prev_avg * 100) if prev_avg > 0 else None
+
+    return schemas.TrendResponse(
+        profile_slug=profile.slug,
+        period=period,
+        data=data,
+        average_pct=avg_pct,
+        best_day=best.date if best else None,
+        improvement=improvement,
+    )
+
+
+# ── Month Auto-Close ─────────────────────────────────────────────
+
+
+def close_month(db: Session, profile: models.Profile, month_key: str):
+    """Automatically close a month and generate rewards."""
+    year, month = month_key.split("-")
+    start_date = f"{month_key}-01"
+    if month == "12":
+        next_month = f"{int(year) + 1}-01-01"
+    else:
+        next_month = f"{year}-{int(month) + 1:02d}-01"
+
+    logs = (
+        db.query(models.DayLog)
+        .filter(
+            models.DayLog.profile_id == profile.id,
+            models.DayLog.date >= start_date,
+            models.DayLog.date < next_month,
+        )
+        .all()
+    )
+
+    days_completed = sum(1 for log in logs if log.day_done)
+    total_days = len(logs)
+    pct = days_completed / total_days if total_days > 0 else 0
+
+    # Check if already closed this month
+    existing = (
+        db.query(models.MonthReward)
+        .filter(
+            models.MonthReward.profile_id == profile.id,
+            models.MonthReward.month_key == month_key,
+        )
+        .first()
+    )
+
+    if existing:
+        return schemas.MonthCloseResult(
+            profile_slug=profile.slug,
+            month_key=month_key,
+            days_completed=days_completed,
+            total_days=total_days,
+            pct=pct,
+            reward_unlocked=existing.reward_unlocked,
+            reward_amount=profile.weekly_reward_full if existing.reward_unlocked else 0,
+            reward_desc=existing.reward_desc or profile.monthly_reward_desc or "",
+            already_closed=True,
+        )
+
+    reward_unlocked = pct >= profile.monthly_min_pct
+
+    month_reward = models.MonthReward(
+        profile_id=profile.id,
+        month_key=month_key,
+        days_completed=days_completed,
+        total_days=total_days,
+        pct=pct,
+        reward_unlocked=reward_unlocked,
+        reward_desc=profile.monthly_reward_desc,
+    )
+    db.add(month_reward)
+    db.commit()
+    db.refresh(month_reward)
+
+    return schemas.MonthCloseResult(
+        profile_slug=profile.slug,
+        month_key=month_key,
+        days_completed=days_completed,
+        total_days=total_days,
+        pct=pct,
+        reward_unlocked=reward_unlocked,
+        reward_amount=profile.weekly_reward_full if reward_unlocked else 0,
+        reward_desc=profile.monthly_reward_desc or "",
+        already_closed=False,
+    )
+
+
+# ── Habit Templates Catalog ─────────────────────────────────────
+
+
+def get_habit_templates_catalog():
+    """Return predefined habit templates by age category."""
+    return schemas.HabitTemplatesCatalog(
+        categories=[
+            schemas.HabitTemplateCategory(
+                category="higiene",
+                description="Hábitos de higiene personal",
+                age_range="3-6",
+                habits=[
+                    schemas.HabitTemplateCreate(
+                        habit_key="lavarse_dientes",
+                        name="Lavarse los dientes",
+                        icon="🦷",
+                        category="higiene",
+                        stars=2,
+                        description="Lavarse los dientes después de comer",
+                        details="Usar cepillo y pasta dental",
+                        motivation="¡Sonrisa sana!",
+                        sort_order=1,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Ir al baño", sort_order=1
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Tomar el cepillo", sort_order=2
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Poner pasta", sort_order=3
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Cepillar 2 minutos", sort_order=4
+                            ),
+                        ],
+                    ),
+                    schemas.HabitTemplateCreate(
+                        habit_key="bañarse",
+                        name="Baño diario",
+                        icon="🛁",
+                        category="higiene",
+                        stars=2,
+                        description="Bañarse todos los días",
+                        details="Uso de jabón y shampoo",
+                        motivation="¡Limpio y fresco!",
+                        sort_order=2,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Preparar ropa", sort_order=1
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Entrar al baño", sort_order=2
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Enjabonarse", sort_order=3
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Secarse bien", sort_order=4
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            schemas.HabitTemplateCategory(
+                category="estudio",
+                description="Hábitos de estudio y aprendizaje",
+                age_range="6-12",
+                habits=[
+                    schemas.HabitTemplateCreate(
+                        habit_key="hacer_tareas",
+                        name="Hacer tareas",
+                        icon="📚",
+                        category="estudio",
+                        stars=3,
+                        description="Completar las tareas escolares",
+                        details="Sin ayuda de adultos",
+                        motivation="¡Casi un experto!",
+                        sort_order=1,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Sacar útiles", sort_order=1
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Leer instrucciones", sort_order=2
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Resolver ejercicios", sort_order=3
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Revisar respuestas", sort_order=4
+                            ),
+                        ],
+                    ),
+                    schemas.HabitTemplateCreate(
+                        habit_key="leer",
+                        name="Leer un libro",
+                        icon="📖",
+                        category="estudio",
+                        stars=2,
+                        description="Leer al menos 15 minutos",
+                        details="Libro de su elección",
+                        motivation="¡Un nuevo mundo!",
+                        sort_order=2,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Elegir libro", sort_order=1
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Sentarse cómodamente", sort_order=2
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Leer 15 minutos", sort_order=3
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            schemas.HabitTemplateCategory(
+                category="deporte",
+                description="Hábitos de actividad física",
+                age_range="5-14",
+                habits=[
+                    schemas.HabitTemplateCreate(
+                        habit_key="ejercicio",
+                        name="Ejercicio diario",
+                        icon="⚽",
+                        category="deporte",
+                        stars=3,
+                        description="30 minutos de actividad física",
+                        details="Correr, jugar o deportes",
+                        motion="¡ energía!",
+                        sort_order=1,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Calentar", sort_order=1
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Jugar fuera", sort_order=2
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Estirar", sort_order=3
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ]
+    )
+
+
 # ── Seeding ───────────────────────────────────────────────────
 
 

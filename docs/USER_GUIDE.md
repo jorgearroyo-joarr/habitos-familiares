@@ -1,4 +1,4 @@
-<!-- Version: 2.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.2.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # 📖 HábitosFam – Guía de Usuario
 
 > Para papás y mamás — sin tecnicismos
@@ -109,6 +109,39 @@ Abre **http://localhost:8765/admin** (o el enlace en el panel Familia de la app)
 3. Abre: http://localhost:8765
 4. Admin: http://localhost:8765/admin
 ```
+
+---
+
+## 🌟 Novedades v2.2.0
+
+Esta versión incluye exciting nuevas funciones:
+
+### 📈 Gráficos de Tendencia
+En la app de las niñas, ahora hay un botón **"Ver Tendencias"** que muestra:
+- Un gráfico visual del rendimiento diario/semanal/mensual
+- Estadísticas: promedio de cumplimiento, mejor día, mejora vs período anterior
+- Selector de período (Semana / Mes / Año)
+
+### 📋 Catálogo de Plantillas
+En el panel Admin hay un nuevo botón **"Plantillas"** con hábitos predefinidos por edad:
+- **Higiene** (3-6 años): Lavarse los dientes, baño diario
+- **Estudio** (6-12 años): Hacer tareas, leer un libro
+- **Deporte** (5-14 años): Ejercicio diario
+
+### 🖐️ Reordenar Hábitos (Drag & Drop)
+En Admin > Hábitos, ahora puedes arrastrar las tarjetas de hábitos para cambiar su orden. ¡Se guarda automáticamente!
+
+### 📅 Cierre de Mes Automático
+En Admin, cada perfil tiene un botón para cerrar el mes actual o un mes específico. Esto:
+- Calcula el porcentaje de días completados
+- Determina si se ganó la recompensa mensual
+- Guarda el registro para no perder историю
+
+### 🌙 Modo Claro/Oscuro
+Toggle en el header para cambiar entre tema oscuro (por defecto) y tema claro. Se remembers!
+
+### 🔔 Recordatorios
+La app puede enviar notificaciones de recordatorio a la hora que configures (requiere permisos del navegador).
 
 ---
 

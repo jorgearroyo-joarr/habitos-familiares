@@ -220,8 +220,10 @@ async function loadHabits() {
         const habits = await apiCall(`/api/admin/profiles/${slug}/habits`);
         const list = document.getElementById('habits-list');
         list.innerHTML = habits.map(h => `
-        <div class="habit-admin-card ${h.is_active ? '' : 'inactive'}">
+        <div class="habit-admin-card draggable-item ${h.is_active ? '' : 'inactive'}" 
+             draggable="true" data-habit-id="${h.id}" data-sort="${h.sort_order}">
             <div class="habit-admin-header">
+                <span class="drag-handle">☰</span>
                 <span>${h.icon} ${h.name}</span>
                 <div class="habit-admin-actions">
                     <button class="btn-sm" onclick="editHabit(${h.id})">✏️</button>
@@ -241,7 +243,82 @@ async function loadHabits() {
                 </div>`).join('')}
             </div>
         </div>`).join('');
+        
+        setupDragAndDrop();
     } catch (e) { console.error(e); }
+}
+
+function setupDragAndDrop() {
+    const items = document.querySelectorAll('.draggable-item');
+    let draggedItem = null;
+    
+    items.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            draggedItem = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            items.forEach(i => i.classList.remove('drag-over'));
+            draggedItem = null;
+        });
+        
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        
+        item.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            if (item !== draggedItem) {
+                item.classList.add('drag-over');
+            }
+        });
+        
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('drag-over');
+        });
+        
+        item.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            if (item === draggedItem) return;
+            
+            const list = document.getElementById('habits-list');
+            const allItems = Array.from(list.querySelectorAll('.draggable-item'));
+            const fromIdx = allItems.indexOf(draggedItem);
+            const toIdx = allItems.indexOf(item);
+            
+            if (fromIdx === -1 || toIdx === -1) return;
+            
+            // Reorder in DOM
+            if (fromIdx < toIdx) {
+                item.parentNode.insertBefore(draggedItem, item.nextSibling);
+            } else {
+                item.parentNode.insertBefore(draggedItem, item);
+            }
+            
+            // Update sort orders
+            const newItems = Array.from(list.querySelectorAll('.draggable-item'));
+            const updates = newItems.map((it, idx) => ({
+                id: parseInt(it.dataset.habitId),
+                sort_order: idx
+            }));
+            
+            // Save to API
+            try {
+                const slug = document.getElementById('habit-profile-select').value;
+                await apiCall(`/api/admin/profiles/${slug}/habits/reorder`, {
+                    method: 'POST',
+                    body: JSON.stringify({ orders: updates })
+                });
+            } catch (e) {
+                console.error('Failed to save order', e);
+                loadHabits(); // Reload on error
+            }
+        });
+    });
 }
 
 function showAddHabit() {
