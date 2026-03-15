@@ -23,10 +23,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 *   **Feedback Dopaminérgico Mejorado**:
     - Celebración especial cuando se domina un hábito
     - Sistema de recompensas visuales y sonoras mejorado
+*   **Migración de Base de Datos**:
+    - Nueva migración Alembic `c929fa34db3d_add_habit_mastery_columns.py` para agregar columnas de mastery
+    - Migración automática al iniciar la aplicación
 
 ### Fixed
 *   **Error del Panel Admin (Production)**: Corregido el problema que impedía acceder al admin en producción - ahora admin.html se compila correctamente a dist/ y se sirve desde ahí
 *   **Error del Panel Admin (Local)**: Corregido el problema que impedía acceder al admin - ahora carga correctamente desde admin.js
+*   **Error de Columna en Producción**: Corregido error `column habit_templates.consecutive_days does not exist` en PostgreSQL
 
 ### Changed
 *   `backend/models.py` - Agregados campos: `consecutive_days`, `is_mastered`, `mastered_at` a HabitTemplate
