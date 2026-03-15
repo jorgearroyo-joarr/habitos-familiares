@@ -41,6 +41,11 @@ async function init() {
     if (titleEl && appSettings.app_name) titleEl.textContent = appSettings.app_name;
     if (appSettings.app_name) document.title = `${appSettings.app_name} ✨`;
 
+    // Initialize notification system
+    if (Notification.permission === 'granted') {
+        scheduleDailyReminder();
+    }
+
     // Check saved session
     const saved = localStorage.getItem('habitosfam_session');
     if (saved) {
@@ -53,6 +58,27 @@ async function init() {
     }
 
     showLoginOverlay();
+    initTheme();
+}
+
+// ── Theme Toggle ───────────────────────────────
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('habitosfam_theme', newTheme);
+    btn.textContent = newTheme === 'light' ? '🌙' : '☀️';
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('habitosfam_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
 }
 
 // ── Login ────────────────────────────────────
@@ -921,6 +947,74 @@ function updateHeaderDate() {
         const greeting = hour < 12 ? '🌅 Buenos días' : hour < 18 ? '☀️ Buenas tardes' : '🌙 Buenas noches';
         el.innerHTML = `${greeting}<br><strong>${dateStr}</strong>`;
     }
+}
+
+// ── Web Notifications (Reminder System) ─────
+
+let notificationPermission = Notification.permission;
+let reminderTime = localStorage.getItem('habitosfam_reminder_time') || '20:00';
+let reminderInterval = null;
+
+async function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.warn('Notifications not supported');
+        return false;
+    }
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') {
+        alert('Las notificaciones están bloqueadas. Por favor habilítalas en la configuración del navegador.');
+        return false;
+    }
+    const permission = await Notification.requestPermission();
+    notificationPermission = permission;
+    return permission === 'granted';
+}
+
+function showNotification(title, body, icon = '🌟') {
+    if (Notification.permission !== 'granted') return;
+    try {
+        new Notification(title, {
+            body,
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            tag: 'habitosfam-reminder',
+            requireInteraction: false
+        });
+    } catch (e) { console.warn('Notification failed', e); }
+}
+
+function scheduleDailyReminder() {
+    if (reminderInterval) clearInterval(reminderInterval);
+    
+    const checkAndNotify = () => {
+        const now = new Date();
+        const [hours, minutes] = reminderTime.split(':').map(Number);
+        if (now.getHours() === hours && now.getMinutes() === minutes) {
+            const profilesList = profiles.map(p => p.name).join(', ') || 'tus hijos';
+            showNotification(
+                '🌟 Recordatorio de Hábitos',
+                `¡Es hora de revisar los hábitos de ${profilesList}!`,
+                '📋'
+            );
+        }
+    };
+    
+    reminderInterval = setInterval(checkAndNotify, 60000);
+    checkAndNotify();
+}
+
+function setReminderTime(time) {
+    reminderTime = time;
+    localStorage.setItem('habitosfam_reminder_time', time);
+    scheduleDailyReminder();
+}
+
+function getReminderSettings() {
+    return {
+        permission: notificationPermission,
+        time: reminderTime,
+        enabled: notificationPermission === 'granted'
+    };
 }
 
 // ── Micro-habit dopamine effects ─────────────

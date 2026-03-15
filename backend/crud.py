@@ -3,6 +3,7 @@ HábitosFam – backend/crud.py  (v3)
 Database CRUD operations.
 All DB access goes through this module.
 """
+
 import json
 import hashlib
 from datetime import datetime, date, timedelta
@@ -14,12 +15,17 @@ from sqlalchemy import func
 from . import models, schemas
 from .config import settings
 from .data_config import (
-    _hash_pin, DEFAULT_ADMIN_PIN,
-    PROFILE_TEMPLATES, HABIT_TEMPLATES, DEFAULT_WEEKLY_TIERS,
+    _hash_pin,
+    DEFAULT_ADMIN_PIN,
+    PROFILE_TEMPLATES,
+    HABIT_TEMPLATES,
+    DEFAULT_WEEKLY_TIERS,
 )
+from . import backup
 
 
 # ── PIN Auth ──────────────────────────────────────────────────
+
 
 def verify_pin(db: Session, pin: str) -> Optional[dict]:
     """
@@ -36,10 +42,14 @@ def verify_pin(db: Session, pin: str) -> Optional[dict]:
         return {"role": "admin", "profile_slug": None}
 
     # Check user PINs
-    profile = db.query(models.Profile).filter(
-        models.Profile.pin_hash == pin_hash,
-        models.Profile.is_active,
-    ).first()
+    profile = (
+        db.query(models.Profile)
+        .filter(
+            models.Profile.pin_hash == pin_hash,
+            models.Profile.is_active,
+        )
+        .first()
+    )
     if profile:
         return {"role": "user", "profile_slug": profile.slug}
 
@@ -52,11 +62,14 @@ def generate_token(pin: str) -> str:
 
 # ── AppSettings ───────────────────────────────────────────────
 
+
 def get_app_settings(db: Session) -> models.AppSettings:
     return db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
 
 
-def update_app_settings(db: Session, data: schemas.AppSettingsUpdate) -> Optional[models.AppSettings]:
+def update_app_settings(
+    db: Session, data: schemas.AppSettingsUpdate
+) -> Optional[models.AppSettings]:
     cfg = get_app_settings(db)
     if not cfg:
         return None
@@ -77,22 +90,30 @@ def update_app_settings(db: Session, data: schemas.AppSettingsUpdate) -> Optiona
 
 # ── Profiles ──────────────────────────────────────────────────
 
+
 def get_profiles(db: Session):
     return db.query(models.Profile).filter(models.Profile.is_active).all()
+
 
 def get_all_profiles(db: Session):
     return db.query(models.Profile).all()
 
+
 def get_profile_by_slug(db: Session, slug: str):
     return db.query(models.Profile).filter(models.Profile.slug == slug).first()
+
 
 def get_profile_by_id(db: Session, profile_id: int):
     return db.query(models.Profile).filter(models.Profile.id == profile_id).first()
 
+
 def create_profile(db: Session, data: schemas.ProfileCreate):
     profile = models.Profile(
-        slug=data.slug, name=data.name, age=data.age,
-        avatar=data.avatar, theme=data.theme,
+        slug=data.slug,
+        name=data.name,
+        age=data.age,
+        avatar=data.avatar,
+        theme=data.theme,
         weekly_reward_base=data.weekly_reward_base,
         weekly_reward_full=data.weekly_reward_full,
         monthly_reward_desc=data.monthly_reward_desc,
@@ -103,6 +124,7 @@ def create_profile(db: Session, data: schemas.ProfileCreate):
     db.commit()
     db.refresh(profile)
     return profile
+
 
 def update_profile(db: Session, profile: models.Profile, data: schemas.ProfileUpdate):
     for field, value in data.model_dump(exclude_unset=True).items():
@@ -115,49 +137,73 @@ def update_profile(db: Session, profile: models.Profile, data: schemas.ProfileUp
     db.refresh(profile)
     return profile
 
+
 def delete_profile(db: Session, profile: models.Profile):
+    backup.create_backup(reason=f"delete_profile_{profile.slug}")
     profile.is_active = False
     db.commit()
 
 
 # ── HabitTemplate CRUD ───────────────────────────────────────
 
+
 def get_habit_templates(db: Session, profile_id: int, active_only: bool = True):
-    q = db.query(models.HabitTemplate).filter(models.HabitTemplate.profile_id == profile_id)
+    q = db.query(models.HabitTemplate).filter(
+        models.HabitTemplate.profile_id == profile_id
+    )
     if active_only:
         q = q.filter(models.HabitTemplate.is_active)
     return q.order_by(models.HabitTemplate.sort_order).all()
 
-def get_habit_template(db: Session, template_id: int):
-    return db.query(models.HabitTemplate).filter(models.HabitTemplate.id == template_id).first()
 
-def create_habit_template(db: Session, profile_id: int, data: schemas.HabitTemplateCreate):
+def get_habit_template(db: Session, template_id: int):
+    return (
+        db.query(models.HabitTemplate)
+        .filter(models.HabitTemplate.id == template_id)
+        .first()
+    )
+
+
+def create_habit_template(
+    db: Session, profile_id: int, data: schemas.HabitTemplateCreate
+):
     tpl = models.HabitTemplate(
         profile_id=profile_id,
-        habit_key=data.habit_key, name=data.name, icon=data.icon,
-        category=data.category, stars=data.stars,
-        description=data.description, details=data.details,
-        motivation=data.motivation, sort_order=data.sort_order,
+        habit_key=data.habit_key,
+        name=data.name,
+        icon=data.icon,
+        category=data.category,
+        stars=data.stars,
+        description=data.description,
+        details=data.details,
+        motivation=data.motivation,
+        sort_order=data.sort_order,
     )
     db.add(tpl)
     db.flush()
     # Add micro-habits
     for i, mh in enumerate(data.micro_habits):
-        db.add(models.MicroHabit(
-            habit_template_id=tpl.id,
-            description=mh.description,
-            sort_order=mh.sort_order if mh.sort_order else i,
-        ))
+        db.add(
+            models.MicroHabit(
+                habit_template_id=tpl.id,
+                description=mh.description,
+                sort_order=mh.sort_order if mh.sort_order else i,
+            )
+        )
     db.commit()
     db.refresh(tpl)
     return tpl
 
-def update_habit_template(db: Session, tpl: models.HabitTemplate, data: schemas.HabitTemplateUpdate):
+
+def update_habit_template(
+    db: Session, tpl: models.HabitTemplate, data: schemas.HabitTemplateUpdate
+):
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(tpl, field, value)
     db.commit()
     db.refresh(tpl)
     return tpl
+
 
 def delete_habit_template(db: Session, tpl: models.HabitTemplate):
     tpl.is_active = False
@@ -166,11 +212,15 @@ def delete_habit_template(db: Session, tpl: models.HabitTemplate):
 
 # ── MicroHabit CRUD ──────────────────────────────────────────
 
+
 def get_micro_habits(db: Session, template_id: int, active_only: bool = True):
-    q = db.query(models.MicroHabit).filter(models.MicroHabit.habit_template_id == template_id)
+    q = db.query(models.MicroHabit).filter(
+        models.MicroHabit.habit_template_id == template_id
+    )
     if active_only:
         q = q.filter(models.MicroHabit.is_active)
     return q.order_by(models.MicroHabit.sort_order).all()
+
 
 def create_micro_habit(db: Session, template_id: int, data: schemas.MicroHabitCreate):
     mh = models.MicroHabit(
@@ -183,12 +233,16 @@ def create_micro_habit(db: Session, template_id: int, data: schemas.MicroHabitCr
     db.refresh(mh)
     return mh
 
-def update_micro_habit(db: Session, mh: models.MicroHabit, data: schemas.MicroHabitUpdate):
+
+def update_micro_habit(
+    db: Session, mh: models.MicroHabit, data: schemas.MicroHabitUpdate
+):
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(mh, field, value)
     db.commit()
     db.refresh(mh)
     return mh
+
 
 def delete_micro_habit(db: Session, mh: models.MicroHabit):
     mh.is_active = False
@@ -197,13 +251,22 @@ def delete_micro_habit(db: Session, mh: models.MicroHabit):
 
 # ── RewardTier CRUD ──────────────────────────────────────────
 
-def get_reward_tiers(db: Session, profile_id: int, tier_type: str = "weekly"):
-    return db.query(models.RewardTier).filter(
-        models.RewardTier.profile_id == profile_id,
-        models.RewardTier.tier_type == tier_type,
-    ).order_by(models.RewardTier.sort_order).all()
 
-def upsert_reward_tiers(db: Session, profile_id: int, tiers: List[schemas.RewardTierCreate]):
+def get_reward_tiers(db: Session, profile_id: int, tier_type: str = "weekly"):
+    return (
+        db.query(models.RewardTier)
+        .filter(
+            models.RewardTier.profile_id == profile_id,
+            models.RewardTier.tier_type == tier_type,
+        )
+        .order_by(models.RewardTier.sort_order)
+        .all()
+    )
+
+
+def upsert_reward_tiers(
+    db: Session, profile_id: int, tiers: List[schemas.RewardTierCreate]
+):
     # Delete existing tiers for this type
     tier_type = tiers[0].tier_type if tiers else "weekly"
     db.query(models.RewardTier).filter(
@@ -212,29 +275,38 @@ def upsert_reward_tiers(db: Session, profile_id: int, tiers: List[schemas.Reward
     ).delete()
     # Insert new
     for t in tiers:
-        db.add(models.RewardTier(
-            profile_id=profile_id,
-            tier_type=t.tier_type,
-            min_pct=t.min_pct,
-            multiplier=t.multiplier,
-            label=t.label,
-            emoji=t.emoji,
-            sort_order=t.sort_order,
-        ))
+        db.add(
+            models.RewardTier(
+                profile_id=profile_id,
+                tier_type=t.tier_type,
+                min_pct=t.min_pct,
+                multiplier=t.multiplier,
+                label=t.label,
+                emoji=t.emoji,
+                sort_order=t.sort_order,
+            )
+        )
     db.commit()
     return get_reward_tiers(db, profile_id, tier_type)
 
 
 # ── DayLog ────────────────────────────────────────────────────
 
-def get_day_log(db: Session, profile_id: int, date_str: str):
-    return db.query(models.DayLog).filter(
-        models.DayLog.profile_id == profile_id,
-        models.DayLog.date == date_str,
-    ).first()
 
-def upsert_day_log(db: Session, profile_id: int, date_str: str,
-                   habits_data: List[schemas.HabitEntryIn]):
+def get_day_log(db: Session, profile_id: int, date_str: str):
+    return (
+        db.query(models.DayLog)
+        .filter(
+            models.DayLog.profile_id == profile_id,
+            models.DayLog.date == date_str,
+        )
+        .first()
+    )
+
+
+def upsert_day_log(
+    db: Session, profile_id: int, date_str: str, habits_data: List[schemas.HabitEntryIn]
+):
     log = get_day_log(db, profile_id, date_str)
     if not log:
         total = len(get_habit_templates(db, profile_id))
@@ -244,10 +316,14 @@ def upsert_day_log(db: Session, profile_id: int, date_str: str,
 
     # Upsert each habit entry
     for h in habits_data:
-        entry = db.query(models.HabitEntry).filter(
-            models.HabitEntry.day_log_id == log.id,
-            models.HabitEntry.habit_id == h.habit_id,
-        ).first()
+        entry = (
+            db.query(models.HabitEntry)
+            .filter(
+                models.HabitEntry.day_log_id == log.id,
+                models.HabitEntry.habit_id == h.habit_id,
+            )
+            .first()
+        )
 
         mini_json = json.dumps(h.mini_tasks) if h.mini_tasks else "{}"
 
@@ -266,22 +342,28 @@ def upsert_day_log(db: Session, profile_id: int, date_str: str,
             db.add(entry)
 
     # Recount
-    entries = db.query(models.HabitEntry).filter(
-        models.HabitEntry.day_log_id == log.id
-    ).all()
+    entries = (
+        db.query(models.HabitEntry).filter(models.HabitEntry.day_log_id == log.id).all()
+    )
     done_count = sum(1 for e in entries if e.done)
     total = log.total or len(entries)
     log.completed_count = done_count
     log.pct = done_count / total if total > 0 else 0
-    log.bonus_star = (done_count == total and total > 0)
+    log.bonus_star = done_count == total and total > 0
 
     db.commit()
     db.refresh(log)
     return log
 
 
-def complete_day(db: Session, profile_id: int, date_str: str,
-                 completed_count: int, total: int, pct: float):
+def complete_day(
+    db: Session,
+    profile_id: int,
+    date_str: str,
+    completed_count: int,
+    total: int,
+    pct: float,
+):
     log = get_day_log(db, profile_id, date_str)
     if not log:
         log = models.DayLog(profile_id=profile_id, date=date_str, total=total)
@@ -292,33 +374,47 @@ def complete_day(db: Session, profile_id: int, date_str: str,
     log.total = total
     log.pct = pct
     log.day_done = True
-    log.bonus_star = (completed_count == total and total > 0)
+    log.bonus_star = completed_count == total and total > 0
     db.commit()
     db.refresh(log)
     return log
 
 
 def get_day_logs_in_range(db: Session, profile_id: int, start: str, end: str):
-    return db.query(models.DayLog).filter(
-        models.DayLog.profile_id == profile_id,
-        models.DayLog.date >= start,
-        models.DayLog.date <= end,
-    ).order_by(models.DayLog.date).all()
+    return (
+        db.query(models.DayLog)
+        .filter(
+            models.DayLog.profile_id == profile_id,
+            models.DayLog.date >= start,
+            models.DayLog.date <= end,
+        )
+        .order_by(models.DayLog.date)
+        .all()
+    )
 
 
 def get_all_day_logs(db: Session, profile_id: int):
-    return db.query(models.DayLog).filter(
-        models.DayLog.profile_id == profile_id
-    ).order_by(models.DayLog.date.desc()).all()
+    return (
+        db.query(models.DayLog)
+        .filter(models.DayLog.profile_id == profile_id)
+        .order_by(models.DayLog.date.desc())
+        .all()
+    )
 
 
 # ── Streak computation ────────────────────────────────────────
 
+
 def compute_streak(db: Session, profile_id: int) -> int:
-    logs = db.query(models.DayLog).filter(
-        models.DayLog.profile_id == profile_id,
-        models.DayLog.pct >= 0.5,
-    ).order_by(models.DayLog.date.desc()).all()
+    logs = (
+        db.query(models.DayLog)
+        .filter(
+            models.DayLog.profile_id == profile_id,
+            models.DayLog.pct >= 0.5,
+        )
+        .order_by(models.DayLog.date.desc())
+        .all()
+    )
 
     if not logs:
         return 0
@@ -342,6 +438,7 @@ def compute_streak(db: Session, profile_id: int) -> int:
 
 # ── Week stats (uses DB reward tiers) ────────────────────────
 
+
 def get_week_dates(reference: Optional[date] = None):
     ref = reference or date.today()
     monday = ref - timedelta(days=ref.weekday())
@@ -349,10 +446,12 @@ def get_week_dates(reference: Optional[date] = None):
     return dates[0], dates[6], dates
 
 
-def compute_week_stats(db: Session, profile: models.Profile,
-                        week_start: Optional[str] = None):
+def compute_week_stats(
+    db: Session, profile: models.Profile, week_start: Optional[str] = None
+):
     if week_start:
         from datetime import date as d
+
         ref = d.fromisoformat(week_start)
     else:
         ref = None
@@ -380,8 +479,7 @@ def compute_week_stats(db: Session, profile: models.Profile,
     # Compute earned from DB tiers
     tiers = get_reward_tiers(db, profile.id, "weekly")
     earned = _compute_earned_from_tiers(
-        tiers, pct, profile.weekly_reward_base,
-        streak, db
+        tiers, pct, profile.weekly_reward_base, streak, db
     )
 
     # Currency
@@ -417,11 +515,16 @@ def _compute_earned_from_tiers(tiers, pct, base_reward, streak, db):
 
 # ── WeekReward ────────────────────────────────────────────────
 
+
 def close_week(db: Session, profile: models.Profile, week_start: str):
-    existing = db.query(models.WeekReward).filter(
-        models.WeekReward.profile_id == profile.id,
-        models.WeekReward.week_start == week_start,
-    ).first()
+    existing = (
+        db.query(models.WeekReward)
+        .filter(
+            models.WeekReward.profile_id == profile.id,
+            models.WeekReward.week_start == week_start,
+        )
+        .first()
+    )
     if existing:
         return existing
 
@@ -452,8 +555,10 @@ def mark_reward_paid(db: Session, reward: models.WeekReward, notes: Optional[str
 
 # ── Month stats ───────────────────────────────────────────────
 
-def compute_month_stats(db: Session, profile: models.Profile,
-                         month_key: Optional[str] = None):
+
+def compute_month_stats(
+    db: Session, profile: models.Profile, month_key: Optional[str] = None
+):
     if not month_key:
         month_key = date.today().strftime("%Y-%m")
 
@@ -467,7 +572,9 @@ def compute_month_stats(db: Session, profile: models.Profile,
     today_date = date.today()
     end_date = min(last_day, today_date)
 
-    logs = get_day_logs_in_range(db, profile.id, first_day.isoformat(), end_date.isoformat())
+    logs = get_day_logs_in_range(
+        db, profile.id, first_day.isoformat(), end_date.isoformat()
+    )
     completed = sum(1 for log in logs if log.pct >= 0.5)
     total = (end_date - first_day).days + 1
 
@@ -490,6 +597,7 @@ def compute_month_stats(db: Session, profile: models.Profile,
 
 # ── Dashboard ─────────────────────────────────────────────────
 
+
 def get_profile_dashboard(db: Session, profile: models.Profile):
     templates = get_habit_templates(db, profile.id)
     all_logs = get_all_day_logs(db, profile.id)
@@ -500,18 +608,22 @@ def get_profile_dashboard(db: Session, profile: models.Profile):
         completed_days = 0
         current_streak = 0
         last_done = None
- 
+
         for log in sorted(all_logs, key=lambda log: log.date, reverse=True):
             entry = next(
-                (e for e in log.habit_entries if e.habit_id == tpl.habit_key),
-                None
+                (e for e in log.habit_entries if e.habit_id == tpl.habit_key), None
             )
             if entry:
                 total_days += 1
                 if entry.done:
                     completed_days += 1
-                    if last_done is None or (last_done and
-                        (date.fromisoformat(last_done) - date.fromisoformat(log.date)).days <= 1):
+                    if last_done is None or (
+                        last_done
+                        and (
+                            date.fromisoformat(last_done) - date.fromisoformat(log.date)
+                        ).days
+                        <= 1
+                    ):
                         current_streak += 1
                     last_done = log.date
                 else:
@@ -520,16 +632,20 @@ def get_profile_dashboard(db: Session, profile: models.Profile):
                     else:
                         break  # streak broken
 
-        habit_stats.append(schemas.HabitDashboardItem(
-            habit_key=tpl.habit_key,
-            habit_name=tpl.name,
-            total_days=total_days,
-            completed_days=completed_days,
-            pct=completed_days / total_days if total_days > 0 else 0,
-            current_streak=current_streak,
-        ))
+        habit_stats.append(
+            schemas.HabitDashboardItem(
+                habit_key=tpl.habit_key,
+                habit_name=tpl.name,
+                total_days=total_days,
+                completed_days=completed_days,
+                pct=completed_days / total_days if total_days > 0 else 0,
+                current_streak=current_streak,
+            )
+        )
 
-    overall_pct = sum(h.pct for h in habit_stats) / len(habit_stats) if habit_stats else 0
+    overall_pct = (
+        sum(h.pct for h in habit_stats) / len(habit_stats) if habit_stats else 0
+    )
 
     return schemas.ProfileDashboardOut(
         profile_slug=profile.slug,
@@ -541,6 +657,7 @@ def get_profile_dashboard(db: Session, profile: models.Profile):
 
 
 # ── Health / Admin ────────────────────────────────────────────
+
 
 def get_health(db: Session, db_url: str, db_engine_type: str):
     profiles = db.query(func.count(models.Profile.id)).scalar()
@@ -562,6 +679,7 @@ def get_health(db: Session, db_url: str, db_engine_type: str):
 
 def reset_all_data(db: Session):
     """Delete all logs and rewards. Keeps profiles and habits."""
+    backup.create_backup(reason="reset_all_data")
     db.query(models.HabitEntry).delete(synchronize_session=False)
     db.query(models.DayLog).delete(synchronize_session=False)
     db.query(models.WeekReward).delete(synchronize_session=False)
@@ -569,9 +687,12 @@ def reset_all_data(db: Session):
 
 
 def get_export_data(db: Session):
-    logs = db.query(models.DayLog).join(models.Profile).order_by(
-        models.Profile.slug, models.DayLog.date
-    ).all()
+    logs = (
+        db.query(models.DayLog)
+        .join(models.Profile)
+        .order_by(models.Profile.slug, models.DayLog.date)
+        .all()
+    )
     return [
         {
             "profile": log.profile.slug,
@@ -586,6 +707,7 @@ def get_export_data(db: Session):
 
 
 # ── Seeding ───────────────────────────────────────────────────
+
 
 def seed_default_data(db: Session):
     """Seed profiles, habits, micro-habits, reward tiers, and app settings."""
@@ -603,7 +725,9 @@ def seed_default_data(db: Session):
 
     # Profiles
     for tpl in PROFILE_TEMPLATES:
-        existing = db.query(models.Profile).filter(models.Profile.slug == tpl["slug"]).first()
+        existing = (
+            db.query(models.Profile).filter(models.Profile.slug == tpl["slug"]).first()
+        )
         if existing:
             continue
 
@@ -643,22 +767,26 @@ def seed_default_data(db: Session):
             raw_mh = h.get("micro_habits", [])
             if isinstance(raw_mh, list):
                 for j, desc in enumerate(raw_mh):
-                    db.add(models.MicroHabit(
-                        habit_template_id=ht.id,
-                        description=str(desc),
-                        sort_order=j,
-                    ))
+                    db.add(
+                        models.MicroHabit(
+                            habit_template_id=ht.id,
+                            description=str(desc),
+                            sort_order=j,
+                        )
+                    )
 
         # Default weekly reward tiers
         for tier in DEFAULT_WEEKLY_TIERS:
-            db.add(models.RewardTier(
-                profile_id=profile.id,
-                tier_type="weekly",
-                min_pct=tier["min_pct"],
-                multiplier=tier["multiplier"],
-                label=tier["label"],
-                emoji=tier["emoji"],
-                sort_order=tier["sort_order"],
-            ))
+            db.add(
+                models.RewardTier(
+                    profile_id=profile.id,
+                    tier_type="weekly",
+                    min_pct=tier["min_pct"],
+                    multiplier=tier["multiplier"],
+                    label=tier["label"],
+                    emoji=tier["emoji"],
+                    sort_order=tier["sort_order"],
+                )
+            )
 
     db.commit()

@@ -1,4 +1,4 @@
-<!-- Version: 1.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.1.1 | Updated: 2026-03-15 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -9,6 +9,22 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 ## [Unreleased]
+
+## [2.1.1] - 2026-03-15
+
+### Added
+- **Web Notifications** — Recordatorio diario configurable via Web Notifications API
+- **Light/Dark Theme Toggle** — Botón en header para cambiar entre modo oscuro y claro (persistente via localStorage)
+- **Automatic Database Backups** — Backups automáticos antes de operaciones críticas (reset, delete profile)
+- **PWA Support** — manifest.json y favicon.svg para instalación como app móvil
+- `backend/backup.py` — Nuevo módulo de backup con retención de 5 backups máximos
+
+### Changed
+- `styles.css` — Variables CSS adicionales para theme light
+- `index.html` — Meta tags para PWA y theme-color
+- `app.js` — Funciones para notificaciones, toggle de tema e inicialización
+
+---
 
 ## [2.1.0] - 2026-03-15
 

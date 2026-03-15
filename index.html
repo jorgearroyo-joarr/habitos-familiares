@@ -7,6 +7,12 @@
   <title>HábitosFam 🌟 – Sistema Familiar de Buenos Hábitos</title>
   <meta name="description"
     content="Sistema gamificado de buenos hábitos para la familia. Checklists diarios, recompensas semanales y logros mensuales." />
+  <meta name="theme-color" content="#a855f7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -52,6 +58,7 @@
         </div>
         <div class="header-right">
           <div class="header-date" id="header-date"></div>
+          <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
           <a href="/admin" id="admin-panel-link" class="admin-link-btn" style="display:none">⚙️ Admin</a>
           <div id="user-role-badge" class="role-badge"></div>
           <button class="logout-btn" onclick="logout()" title="Cerrar sesión">🚪</button>

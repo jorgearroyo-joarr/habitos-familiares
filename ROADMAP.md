@@ -1,10 +1,10 @@
 # 🗺️ HábitosFam – Roadmap Estratégico
 
-> **Versión actual:** v2.1.0 · **Última actualización:** Marzo 2026
+> **Versión actual:** v2.1.1 · **Última actualización:** Marzo 2026
 
 ---
 
-## ✅ Estado actual (v2.1.0)
+## ✅ Estado actual (v2.1.1)
 
 - [x] App web gamificada (HTML/CSS/JS) con diseño premium dark-mode
 - [x] Gestión Dinámica de Perfiles (CRUD ilimitado)
@@ -15,23 +15,18 @@
 - [x] Dopamine UI: Micro-sparkles y confetti burst
 - [x] Backend FastAPI robusto con SQLite persistente
 - [x] Documentación completa (Técnica, Guía, Agent, Roadmap, IMPROVEMENTS)
-- [x] **[NUEVO]** Reset de datos integral desde el panel admin
-- [x] **[NUEVO]** Localización completa de la API al español (es-MX)
+- [x] Reset de datos integral desde el panel admin
+- [x] Localización completa de la API al español (es-MX)
+- [x] **[v2.1.1]** Efectos de Micro-Dopamina (confeti + brillos locales)
+- [x] **[v2.1.1]** Efectos de Sonido (playCheckSound, playMicroCheckSound)
+- [x] **[v2.1.1]** Notificaciones de recordatorio (Web Notifications API)
+- [x] **[v2.1.1]** Modo oscuro/claro (toggle con persistencia)
+- [x] **[v2.1.1]** Backups Automáticos (antes de operaciones críticas)
+- [x] **[v2.1.1]** Favicon y PWA manifest (instalable en móvil)
 
 ---
 
-## 🚧 v2.1.1 – Pulido y Dopamina (Próximas 2-4 semanas)
-
-- [ ] **Efectos de Micro-Dopamina**: Confeti y brillos locales cada vez que se marca un micro-hábito.
-- [ ] **Efectos de Sonido**: Añadir sonidos satisfactorios ("pling", "sparkle") al completar tareas.
-- [ ] **Notificaciones de recordatorio**: alerta diaria a hora configurable (Web Notifications API).
-- [ ] **Modo oscuro/claro**: toggle opcional de temas.
-- [ ] **Backups Automáticos**: Copia de seguridad automática de `habitosfam.db` antes de cambios críticos.
-- [ ] **Favicon y PWA manifest**: instalable en móvil como app.
-
----
-
-## 🔄 v2.2.0 – Analítica y Plantillas (Mes 2)
+## 🚧 v2.2.0 – Analítica y Plantillas (Próximas 2-4 semanas)
 
 - [ ] **Gráficos de Tendencia**: Integrar `Chart.js` para visualizar el cumplimiento semanal/mensual.
 - [ ] **Catálogo de Plantillas**: Hábitos predefinidos por edad (Higiene, Estudio, Deporte).
