@@ -1,4 +1,4 @@
-<!-- Version: 2.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # HábitosFam – Documentación Técnica
 
 > Stack: FastAPI · SQLAlchemy · SQLite (pronto: PostgreSQL/MySQL) · HTML/CSS/JS vanilla
@@ -159,6 +159,7 @@ Sin cambios — misma estructura v2.
 | GET | `/api/admin/health` | Estado del sistema |
 | GET | `/api/admin/export/csv` | Exportar datos CSV |
 | POST | `/api/admin/seed` | Datos semilla |
+| POST | `/api/admin/reset-all-data` | Borrado de logs y recompensas |
 
 📖 **Documentación interactiva**: `http://localhost:8765/api/docs`
 

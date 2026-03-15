@@ -1,10 +1,10 @@
 # 🗺️ HábitosFam – Roadmap Estratégico
 
-> **Versión actual:** v2.0.0 · **Última actualización:** Marzo 2026
+> **Versión actual:** v2.1.0 · **Última actualización:** Marzo 2026
 
 ---
 
-## ✅ Estado actual (v2.0.0)
+## ✅ Estado actual (v2.1.0)
 
 - [x] App web gamificada (HTML/CSS/JS) con diseño premium dark-mode
 - [x] Gestión Dinámica de Perfiles (CRUD ilimitado)
@@ -12,77 +12,58 @@
 - [x] Panel Administrativo con PIN y niveles de recompensa personalizables
 - [x] Sistema de App Settings (Nombre de App, Moneda, Bonus)
 - [x] Dashboard Familiar Unificado (vista Supervisor)
-- [x] Dopamine UI: Micro-sparkles, sonidos y confetti burst
+- [x] Dopamine UI: Micro-sparkles y confetti burst
 - [x] Backend FastAPI robusto con SQLite persistente
-- [x] Documentación completa (Técnica, Guía, Agent, Roadmap)
-
-
----
-
-## 🚧 v2.1.0 – Pulido y UX (Próximas 4 semanas)
-
-- [ ] **Sincronización API↔Frontend**: reemplazar localStorage por llamadas al backend
-- [ ] **Notificaciones de recordatorio**: alerta diaria a hora configurable (Web Notifications API)
-- [ ] **Modo oscuro/claro**: toggle opcional
-- [ ] **Historial visual**: gráfico de barras mensual estilo GitHub contribution heatmap
-- [ ] **Avatar personalizable**: subida de foto de perfil
-- [ ] **Favicon y PWA manifest**: instalable en móvil como app
+- [x] Documentación completa (Técnica, Guía, Agent, Roadmap, IMPROVEMENTS)
+- [x] **[NUEVO]** Reset de datos integral desde el panel admin
+- [x] **[NUEVO]** Localización completa de la API al español (es-MX)
 
 ---
 
-## 🔄 v2.2.0 – Migración a PostgreSQL/Supabase (Mes 2)
+## 🚧 v2.1.1 – Pulido y Dopamina (Próximas 2-4 semanas)
 
-> **OBJETIVO:** Persistencia en la nube para acceso multi-dispositivo.
-
-- [ ] **Migrar a Supabase** (PostgreSQL): cambiar `DATABASE_URL` en `.env`
-- [ ] **Autenticación con Supabase Auth**: reemplazar PIN con login de email
-- [ ] **Row-Level Security (RLS)**: cada familia solo ve sus datos
-- [ ] **Migraciones con Alembic**: versionado de esquema de base de datos
-- [ ] **Deploy en Railway o Render**: servidor siempre activo
-- [ ] **Variables de entorno seguras** en plataforma de hosting
-
-### Pasos de migración SQLite → Supabase
-```bash
-# 1. Crear proyecto en supabase.com
-# 2. Copiar connection string a .env
-DATABASE_URL="postgresql://postgres:[password]@[host]:5432/postgres"
-
-# 3. Crear tablas en Supabase (via SQLAlchemy)
-python -c "from backend.database import create_tables; create_tables()"
-
-# 4. Migrar datos existentes (script incluido en v2.2.0)
-python scripts/migrate_sqlite_to_postgres.py
-```
+- [ ] **Efectos de Micro-Dopamina**: Confeti y brillos locales cada vez que se marca un micro-hábito.
+- [ ] **Efectos de Sonido**: Añadir sonidos satisfactorios ("pling", "sparkle") al completar tareas.
+- [ ] **Notificaciones de recordatorio**: alerta diaria a hora configurable (Web Notifications API).
+- [ ] **Modo oscuro/claro**: toggle opcional de temas.
+- [ ] **Backups Automáticos**: Copia de seguridad automática de `habitosfam.db` antes de cambios críticos.
+- [ ] **Favicon y PWA manifest**: instalable en móvil como app.
 
 ---
 
-## 📱 v3.0.0 – App Móvil (Mes 3-4)
+## 🔄 v2.2.0 – Analítica y Plantillas (Mes 2)
 
-- [ ] **Progressive Web App (PWA)**: funciona offline, instalable, push notifications
-- [ ] **React Native o Flutter**: app nativa para iOS/Android (evaluación)
-- [ ] **QR de acceso rápido**: imprimir código QR en el cuarto para abrir la app
-- [ ] **Modo "Hoy"**: pantalla simplificada para uso rápido antes de dormir
-- [ ] **Integración con Google Calendar**: eventos de hábitos automáticos
+- [ ] **Gráficos de Tendencia**: Integrar `Chart.js` para visualizar el cumplimiento semanal/mensual.
+- [ ] **Catálogo de Plantillas**: Hábitos predefinidos por edad (Higiene, Estudio, Deporte).
+- [ ] **Editor Drag & Drop**: Reordenar hábitos y categorías arrastrando elementos en admin.
+- [ ] **Cierre de Mes Automático**: Consolidación de recompensas sin intervención manual.
+- [ ] **Migraciones con Alembic**: Versionado formal del esquema de base de datos.
 
 ---
 
-## 🤖 v3.1.0 – Inteligencia y Personalización (Mes 5-6)
+## 📱 v3.0.0 – Migración Cloud y Movilidad (Mes 3-4)
 
-- [ ] **Sugerencias de hábitos adaptativas**: basadas en racha y tasa de completado
-- [ ] **Reportes semanales automáticos por email** (para el padre)
-- [ ] **Sistema de logros (badges)**: hitos como "30 días seguidos", "100 estrellas"
-- [ ] **Modo desafío**: retos especiales semanales con recompensa extra
-- [ ] **Hábitos por temporada**: diferentes hábitos en vacaciones/clases
+- [ ] **Migrar a Supabase/PostgreSQL**: Persistencia en la nube para acceso multi-dispositivo.
+- [ ] **Evolución del Avatar**: El avatar gana accesorios según la racha de días perfectos.
+- [ ] **QR de acceso rápido**: Abrir perfiles mediante escaneo de código físico.
+- [ ] **Deploy Pro**: Servidor siempre activo en Railway/Render con RLS (Row-Level Security).
+
+---
+
+## 🤖 v3.1.0 – Accesibilidad e IA (Mes 5-6)
+
+- [ ] **Modo de Lectura (TTS)**: El sistema lee los hábitos en voz alta para niños pequeños.
+- [ ] **Navegación por Voz**: Comandos simples como "Completar mi día".
+- [ ] **Sugerencias Adaptativas**: IA que recomienda retos basados en el desempeño histórico.
+- [ ] **Reportes por Email**: Resumen semanal automático para los padres.
 
 ---
 
 ## 👨‍👩‍👧 v4.0.0 – Multi-Familia (Mes 6+)
 
-- [ ] **Cuentas de familia**: múltiples padres, múltiples hijos
-- [ ] **Roles**: Admin (padre), Usuario (hija), Observador (abuelos)
-- [ ] **Modo compartido familiar**: hábitos que gana toda la familia junta
-- [ ] **Marketplace de hábitos**: plantillas predefinidas por edad y objetivo
-- [ ] **API pública documentada**: integraciones con otras apps (Google Fit, etc.)
+- [ ] **Cuentas de familia**: Múltiples padres, múltiples hijos con roles definidos.
+- [ ] **Modo compartido familiar**: Hitos globales para toda la casa.
+- [ ] **Marketplace AI**: IA que genera planes de hábitos personalizados por temporada.
 
 ---
 
@@ -93,8 +74,8 @@ python scripts/migrate_sqlite_to_postgres.py
 | **Sostenibilidad** | Micro-hábitos progresivos, no todo de golpe |
 | **Resiliencia** | Escudo semanal, días parciales cuentan |
 | **Dopamina** | Inmediata (check), diaria (completar), semanal ($), mensual (reward) |
-| **Progresión** | Niveles, rachas, badges para motivar continuidad |
-| **Privacidad** | Datos en casa primero (SQLite), nube opcional |
+| **Progresión** | Niveles, rachas, badges y evolución de avatar |
+| **Privacidad** | Datos en casa primero (SQLite), nube con cifrado opcional |
 | **Portabilidad** | DB agnóstico, PWA, export CSV siempre disponible |
 
 ---

@@ -1,4 +1,4 @@
-<!-- Version: 1.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # 📖 HábitosFam – Guía de Usuario
 
 > Para papás y mamás — sin tecnicismos

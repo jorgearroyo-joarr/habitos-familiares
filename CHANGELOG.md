@@ -26,6 +26,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `.agents/skills/update-docs/SKILL.md` — Documentation sync skill
 - `.agents/workflows/dev-run.md` — Workflow to start the development server
 - `.agents/workflows/add-feature.md` — Standard feature addition workflow
+- `[FIXED]` Integrated "Propuestas de Mejora" into official `ROADMAP.md`
+- `[FIXED]` Added `reset-all-data` functional endpoint to Admin API
+- `[FIXED]` Fixed 15+ linting and type errors across the backend
+- `[FIXED]` Fully localized API responses and error messages to es-MX
 
 ### Changed
 - `AGENTS.md` — Upgraded from 2024 to 2025 standard: added Testing section, Security Constraints (Zero-Privilege), Agent Policies, Gated Protocols, Versioning Policy, Skill references
