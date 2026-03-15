@@ -1,3 +1,4 @@
+<!-- Version: 2.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # HábitosFam – Documentación Técnica
 
 > Stack: FastAPI · SQLAlchemy · SQLite (pronto: PostgreSQL/MySQL) · HTML/CSS/JS vanilla

@@ -1,0 +1,167 @@
+F401 [*] `fastapi.Header` imported but unused
+ --> backend\api\habits.py:5:56
+  |
+3 | REST endpoints for habits, daily logs, auth, and dashboard.
+4 | """
+5 | from fastapi import APIRouter, Depends, HTTPException, Header
+  |                                                        ^^^^^^
+6 | from sqlalchemy.orm import Session
+7 | from typing import List, Optional
+  |
+help: Remove unused import: `fastapi.Header`
+
+F401 [*] `..models` imported but unused
+  --> backend\api\habits.py:11:31
+   |
+10 | from ..database import get_db
+11 | from .. import crud, schemas, models
+   |                               ^^^^^^
+12 |
+13 | router = APIRouter(prefix="/api", tags=["habits"])
+   |
+help: Remove unused import: `..models`
+
+F401 [*] `pydantic.field_validator` imported but unused
+ --> backend\config.py:7:22
+  |
+5 | """
+6 | from pydantic_settings import BaseSettings
+7 | from pydantic import field_validator
+  |                      ^^^^^^^^^^^^^^^
+8 | from typing import List
+9 | import os
+  |
+help: Remove unused import: `pydantic.field_validator`
+
+F401 [*] `os` imported but unused
+ --> backend\config.py:9:8
+  |
+7 | from pydantic import field_validator
+8 | from typing import List
+9 | import os
+  |        ^^
+  |
+help: Remove unused import: `os`
+
+E712 Avoid equality comparisons to `True`; use `models.Profile.is_active:` for truth checks
+  --> backend\crud.py:41:9
+   |
+39 |     profile = db.query(models.Profile).filter(
+40 |         models.Profile.pin_hash == pin_hash,
+41 |         models.Profile.is_active == True,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+42 |     ).first()
+43 |     if profile:
+   |
+help: Replace with `models.Profile.is_active`
+
+E712 Avoid equality comparisons to `True`; use `models.Profile.is_active:` for truth checks
+  --> backend\crud.py:81:44
+   |
+80 | def get_profiles(db: Session):
+81 |     return db.query(models.Profile).filter(models.Profile.is_active == True).all()
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+82 |
+83 | def get_all_profiles(db: Session):
+   |
+help: Replace with `models.Profile.is_active`
+
+E712 Avoid equality comparisons to `True`; use `models.HabitTemplate.is_active:` for truth checks
+   --> backend\crud.py:128:22
+    |
+126 |     q = db.query(models.HabitTemplate).filter(models.HabitTemplate.profile_id == profile_id)
+127 |     if active_only:
+128 |         q = q.filter(models.HabitTemplate.is_active == True)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+129 |     return q.order_by(models.HabitTemplate.sort_order).all()
+    |
+help: Replace with `models.HabitTemplate.is_active`
+
+E712 Avoid equality comparisons to `True`; use `models.MicroHabit.is_active:` for truth checks
+   --> backend\crud.py:172:22
+    |
+170 |     q = db.query(models.MicroHabit).filter(models.MicroHabit.habit_template_id == template_id)
+171 |     if active_only:
+172 |         q = q.filter(models.MicroHabit.is_active == True)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+173 |     return q.order_by(models.MicroHabit.sort_order).all()
+    |
+help: Replace with `models.MicroHabit.is_active`
+
+F841 Local variable `today_str` is assigned to but never used
+   --> backend\crud.py:327:5
+    |
+326 |     streak = 0
+327 |     today_str = date.today().isoformat()
+    |     ^^^^^^^^^
+328 |     check = date.today()
+329 |     log_dates = {l.date for l in logs}
+    |
+help: Remove assignment to unused variable `today_str`
+
+E741 Ambiguous variable name: `l`
+   --> backend\crud.py:329:29
+    |
+327 |     today_str = date.today().isoformat()
+328 |     check = date.today()
+329 |     log_dates = {l.date for l in logs}
+    |                             ^
+330 |
+331 |     for i in range(365):
+    |
+
+E741 Ambiguous variable name: `l`
+   --> backend\crud.py:363:30
+    |
+361 |     monday_str, sunday_str, week_dates = get_week_dates(ref)
+362 |     logs = get_day_logs_in_range(db, profile.id, monday_str, sunday_str)
+363 |     log_map = {l.date: l for l in logs}
+    |                              ^
+364 |
+365 |     stars = 0
+    |
+
+E741 Ambiguous variable name: `l`
+   --> backend\crud.py:402:59
+    |
+400 |         earned_amount=earned,
+401 |         currency=currency,
+402 |         day_logs=[schemas.DayLogOut.model_validate(l) for l in logs],
+    |                                                           ^
+403 |     )
+    |
+
+E741 Ambiguous variable name: `l`
+   --> backend\crud.py:472:27
+    |
+471 |     logs = get_day_logs_in_range(db, profile.id, first_day.isoformat(), end_date.isoformat())
+472 |     completed = sum(1 for l in logs if l.pct >= 0.5)
+    |                           ^
+473 |     total = (end_date - first_day).days + 1
+    |
+
+F841 Local variable `streak` is assigned to but never used
+   --> backend\crud.py:502:9
+    |
+500 |         total_days = 0
+501 |         completed_days = 0
+502 |         streak = 0
+    |         ^^^^^^
+503 |         current_streak = 0
+504 |         last_done = None
+    |
+help: Remove assignment to unused variable `streak`
+
+E741 Ambiguous variable name: `l`
+   --> backend\crud.py:506:48
+    |
+504 |         last_done = None
+505 |
+506 |         for log in sorted(all_logs, key=lambda l: l.date, reverse=True):
+    |                                                ^
+507 |             entry = next(
+508 |                 (e for e in log.habit_entries if e.habit_id == tpl.habit_key),
+    |
+
+Found 15 errors.
+[*] 4 fixable with the `--fix` option (6 hidden fixes can be enabled with the `--unsafe-fixes` option).

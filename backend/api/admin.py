@@ -14,7 +14,6 @@ from typing import List, Optional
 from ..database import get_db
 from ..config import settings
 from .. import crud, schemas, models
-from ..data_config import _hash_pin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -24,10 +23,10 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 def _verify_admin(x_admin_pin: Optional[str] = Header(None), db: Session = Depends(get_db)):
     """Verify admin PIN from X-Admin-Pin header."""
     if not x_admin_pin:
-        raise HTTPException(status_code=401, detail="Admin PIN required")
+        raise HTTPException(status_code=401, detail="Se requiere PIN de administrador")
     result = crud.verify_pin(db, x_admin_pin)
     if not result or result["role"] != "admin":
-        raise HTTPException(status_code=401, detail="Invalid admin PIN")
+        raise HTTPException(status_code=401, detail="PIN de administrador inválido")
     return True
 
 
@@ -37,7 +36,7 @@ def _verify_admin(x_admin_pin: Optional[str] = Header(None), db: Session = Depen
 def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)):
     result = crud.verify_pin(db, payload.pin)
     if not result or result["role"] != "admin":
-        raise HTTPException(status_code=401, detail="Invalid admin PIN")
+        raise HTTPException(status_code=401, detail="PIN de administrador inválido")
     token = crud.generate_token(payload.pin)
     return {"success": True, "token": token, "role": "admin"}
 
@@ -73,7 +72,7 @@ def admin_create_profile(data: schemas.ProfileCreate,
                           db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     existing = crud.get_profile_by_slug(db, data.slug)
     if existing:
-        raise HTTPException(status_code=409, detail=f"Profile '{data.slug}' already exists")
+        raise HTTPException(status_code=409, detail=f"El perfil '{data.slug}' ya existe")
     profile = crud.create_profile(db, data)
     out = schemas.ProfileOut.model_validate(profile)
     out.has_pin = profile.pin_hash is not None
@@ -85,7 +84,7 @@ def admin_update_profile(slug: str, data: schemas.ProfileUpdate,
                           db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     updated = crud.update_profile(db, profile, data)
     out = schemas.ProfileOut.model_validate(updated)
     out.has_pin = updated.pin_hash is not None
@@ -96,7 +95,7 @@ def admin_update_profile(slug: str, data: schemas.ProfileUpdate,
 def admin_delete_profile(slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     crud.delete_profile(db, profile)
     return {"message": f"Profile '{slug}' deactivated"}
 
@@ -107,7 +106,7 @@ def admin_delete_profile(slug: str, db: Session = Depends(get_db), auth=Depends(
 def admin_list_habits(slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.get_habit_templates(db, profile.id, active_only=False)
 
 
@@ -116,7 +115,7 @@ def admin_create_habit(slug: str, data: schemas.HabitTemplateCreate,
                         db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.create_habit_template(db, profile.id, data)
 
 
@@ -125,7 +124,7 @@ def admin_update_habit(habit_id: int, data: schemas.HabitTemplateUpdate,
                         db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     tpl = crud.get_habit_template(db, habit_id)
     if not tpl:
-        raise HTTPException(status_code=404, detail="Habit template not found")
+        raise HTTPException(status_code=404, detail="Plantilla de hábito no encontrada")
     return crud.update_habit_template(db, tpl, data)
 
 
@@ -133,7 +132,7 @@ def admin_update_habit(habit_id: int, data: schemas.HabitTemplateUpdate,
 def admin_delete_habit(habit_id: int, db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     tpl = crud.get_habit_template(db, habit_id)
     if not tpl:
-        raise HTTPException(status_code=404, detail="Habit template not found")
+        raise HTTPException(status_code=404, detail="Plantilla de hábito no encontrada")
     crud.delete_habit_template(db, tpl)
     return {"message": "Habit deactivated"}
 
@@ -145,7 +144,7 @@ def admin_create_micro(habit_id: int, data: schemas.MicroHabitCreate,
                         db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     tpl = crud.get_habit_template(db, habit_id)
     if not tpl:
-        raise HTTPException(status_code=404, detail="Habit template not found")
+        raise HTTPException(status_code=404, detail="Plantilla de hábito no encontrada")
     return crud.create_micro_habit(db, tpl.id, data)
 
 
@@ -154,7 +153,7 @@ def admin_update_micro(micro_id: int, data: schemas.MicroHabitUpdate,
                         db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     mh = db.query(models.MicroHabit).filter(models.MicroHabit.id == micro_id).first()
     if not mh:
-        raise HTTPException(status_code=404, detail="MicroHabit not found")
+        raise HTTPException(status_code=404, detail="MicroHábito no encontrado")
     return crud.update_micro_habit(db, mh, data)
 
 
@@ -162,7 +161,7 @@ def admin_update_micro(micro_id: int, data: schemas.MicroHabitUpdate,
 def admin_delete_micro(micro_id: int, db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     mh = db.query(models.MicroHabit).filter(models.MicroHabit.id == micro_id).first()
     if not mh:
-        raise HTTPException(status_code=404, detail="MicroHabit not found")
+        raise HTTPException(status_code=404, detail="MicroHábito no encontrado")
     crud.delete_micro_habit(db, mh)
     return {"message": "MicroHabit deactivated"}
 
@@ -174,7 +173,7 @@ def admin_list_tiers(slug: str, tier_type: str = "weekly",
                       db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.get_reward_tiers(db, profile.id, tier_type)
 
 
@@ -183,7 +182,7 @@ def admin_upsert_tiers(slug: str, tiers: List[schemas.RewardTierCreate],
                         db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.upsert_reward_tiers(db, profile.id, tiers)
 
 
@@ -193,7 +192,7 @@ def admin_upsert_tiers(slug: str, tiers: List[schemas.RewardTierCreate],
 def admin_get_logs(slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.get_all_day_logs(db, profile.id)
 
 
@@ -201,7 +200,7 @@ def admin_get_logs(slug: str, db: Session = Depends(get_db), auth=Depends(_verif
 def admin_get_rewards(slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return db.query(models.WeekReward).filter(
         models.WeekReward.profile_id == profile.id
     ).order_by(models.WeekReward.week_start.desc()).all()
@@ -212,7 +211,7 @@ def admin_close_week(slug: str, week_start: str,
                       db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.close_week(db, profile, week_start)
 
 
@@ -221,7 +220,7 @@ def mark_reward_paid(reward_id: int, payload: schemas.RewardMarkPaid,
                       db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     reward = db.query(models.WeekReward).filter(models.WeekReward.id == reward_id).first()
     if not reward:
-        raise HTTPException(status_code=404, detail="Reward not found")
+        raise HTTPException(status_code=404, detail="Recompensa no encontrada")
     return crud.mark_reward_paid(db, reward, payload.notes)
 
 
@@ -230,10 +229,10 @@ def admin_delete_log(slug: str, date_str: str,
                       db: Session = Depends(get_db), auth=Depends(_verify_admin)):
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     log = crud.get_day_log(db, profile.id, date_str)
     if not log:
-        raise HTTPException(status_code=404, detail="Log not found")
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
     db.delete(log)
     db.commit()
     return {"message": f"Log for {slug} on {date_str} deleted"}
@@ -265,3 +264,7 @@ def export_csv(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=habitosfam_export.csv"},
     )
+@router.post("/reset-all-data")
+def reset_all_data(db: Session = Depends(get_db), auth=Depends(_verify_admin)):
+    crud.reset_all_data(db)
+    return {"message": "All log data has been reset"}

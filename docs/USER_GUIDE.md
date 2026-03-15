@@ -1,3 +1,4 @@
+<!-- Version: 1.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # 📖 HábitosFam – Guía de Usuario
 
 > Para papás y mamás — sin tecnicismos
@@ -117,7 +118,7 @@ Abre **http://localhost:8765/admin** (o el enlace en el panel Familia de la app)
 El escudo protector (1 por semana) puede cubrir ese día sin romper la racha.
 
 **¿Se pueden cambiar los hábitos?**
-Sí, editando el archivo `data.js`. Seguir las instrucciones en `AGENT.md`.
+Sí, editando el archivo `data.js`. Seguir las instrucciones en `AGENTS.md`.
 
 **¿Los datos se pierden si cierro la app?**
 No. Los datos se guardan en la base de datos `habitosfam.db` de forma permanente.

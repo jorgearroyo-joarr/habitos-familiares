@@ -255,14 +255,26 @@ function showAddHabit() {
     document.getElementById('habit-modal').classList.remove('hidden');
 }
 
-function editHabit(id) {
-    // Fetch habit data
-    apiCall(`/api/admin/habits/${id}`.replace('/habits/', '/habits/'))
-        .catch(() => null);
-    // For simplicity, just show the form — user fills in fields
-    document.getElementById('habit-modal-title').textContent = 'Editar Hábito';
-    document.getElementById('ht-id').value = id;
-    document.getElementById('habit-modal').classList.remove('hidden');
+async function editHabit(id) {
+    const slug = document.getElementById('habit-profile-select').value;
+    try {
+        const habits = await apiCall(`/api/admin/profiles/${slug}/habits`);
+        const h = habits.find(x => x.id === id);
+        if (!h) return;
+        
+        document.getElementById('habit-modal-title').textContent = `Editar ${h.name}`;
+        document.getElementById('ht-id').value = h.id;
+        document.getElementById('ht-key').value = h.habit_key;
+        document.getElementById('ht-name').value = h.name;
+        document.getElementById('ht-icon').value = h.icon;
+        document.getElementById('ht-cat').value = h.category;
+        document.getElementById('ht-stars').value = h.stars;
+        document.getElementById('ht-desc').value = h.description || '';
+        document.getElementById('ht-motivation').value = h.motivation || '';
+        document.getElementById('ht-order').value = h.sort_order || 0;
+        
+        document.getElementById('habit-modal').classList.remove('hidden');
+    } catch (e) { alert('Error: ' + e.message); }
 }
 
 async function saveHabit(e) {
@@ -472,7 +484,12 @@ async function loadHealth() {
 async function resetAllData() {
     if (!confirm('⚠️ ¿BORRAR TODOS los datos? Esta acción no se puede deshacer.')) return;
     if (!confirm('¿Estás realmente seguro?')) return;
-    alert('Para borrar datos, elimina el archivo habitosfam.db y reinicia el servidor.');
+    try {
+        await apiCall('/api/admin/reset-all-data', { method: 'POST' });
+        alert('✅ Todos los datos han sido borrados');
+        loadLogs();
+        loadHealth();
+    } catch (e) { alert('Error: ' + e.message); }
 }
 
 // ── Modal helper ──────────────────────────────

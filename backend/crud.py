@@ -21,7 +21,7 @@ from .data_config import (
 
 # ── PIN Auth ──────────────────────────────────────────────────
 
-def verify_pin(db: Session, pin: str) -> dict:
+def verify_pin(db: Session, pin: str) -> Optional[dict]:
     """
     Verify a PIN. Returns:
       {'role': 'admin', 'profile_slug': None}   if admin PIN
@@ -38,7 +38,7 @@ def verify_pin(db: Session, pin: str) -> dict:
     # Check user PINs
     profile = db.query(models.Profile).filter(
         models.Profile.pin_hash == pin_hash,
-        models.Profile.is_active == True,
+        models.Profile.is_active,
     ).first()
     if profile:
         return {"role": "user", "profile_slug": profile.slug}
@@ -56,7 +56,7 @@ def get_app_settings(db: Session) -> models.AppSettings:
     return db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
 
 
-def update_app_settings(db: Session, data: schemas.AppSettingsUpdate) -> models.AppSettings:
+def update_app_settings(db: Session, data: schemas.AppSettingsUpdate) -> Optional[models.AppSettings]:
     cfg = get_app_settings(db)
     if not cfg:
         return None
@@ -78,7 +78,7 @@ def update_app_settings(db: Session, data: schemas.AppSettingsUpdate) -> models.
 # ── Profiles ──────────────────────────────────────────────────
 
 def get_profiles(db: Session):
-    return db.query(models.Profile).filter(models.Profile.is_active == True).all()
+    return db.query(models.Profile).filter(models.Profile.is_active).all()
 
 def get_all_profiles(db: Session):
     return db.query(models.Profile).all()
@@ -125,7 +125,7 @@ def delete_profile(db: Session, profile: models.Profile):
 def get_habit_templates(db: Session, profile_id: int, active_only: bool = True):
     q = db.query(models.HabitTemplate).filter(models.HabitTemplate.profile_id == profile_id)
     if active_only:
-        q = q.filter(models.HabitTemplate.is_active == True)
+        q = q.filter(models.HabitTemplate.is_active)
     return q.order_by(models.HabitTemplate.sort_order).all()
 
 def get_habit_template(db: Session, template_id: int):
@@ -169,7 +169,7 @@ def delete_habit_template(db: Session, tpl: models.HabitTemplate):
 def get_micro_habits(db: Session, template_id: int, active_only: bool = True):
     q = db.query(models.MicroHabit).filter(models.MicroHabit.habit_template_id == template_id)
     if active_only:
-        q = q.filter(models.MicroHabit.is_active == True)
+        q = q.filter(models.MicroHabit.is_active)
     return q.order_by(models.MicroHabit.sort_order).all()
 
 def create_micro_habit(db: Session, template_id: int, data: schemas.MicroHabitCreate):
@@ -324,9 +324,8 @@ def compute_streak(db: Session, profile_id: int) -> int:
         return 0
 
     streak = 0
-    today_str = date.today().isoformat()
     check = date.today()
-    log_dates = {l.date for l in logs}
+    log_dates = {log.date for log in logs}
 
     for i in range(365):
         key = check.isoformat()
@@ -360,7 +359,7 @@ def compute_week_stats(db: Session, profile: models.Profile,
 
     monday_str, sunday_str, week_dates = get_week_dates(ref)
     logs = get_day_logs_in_range(db, profile.id, monday_str, sunday_str)
-    log_map = {l.date: l for l in logs}
+    log_map = {log.date: log for log in logs}
 
     stars = 0
     completed_days = 0
@@ -399,7 +398,7 @@ def compute_week_stats(db: Session, profile: models.Profile,
         streak=streak,
         earned_amount=earned,
         currency=currency,
-        day_logs=[schemas.DayLogOut.model_validate(l) for l in logs],
+        day_logs=[schemas.DayLogOut.model_validate(log) for log in logs],
     )
 
 
@@ -469,7 +468,7 @@ def compute_month_stats(db: Session, profile: models.Profile,
     end_date = min(last_day, today_date)
 
     logs = get_day_logs_in_range(db, profile.id, first_day.isoformat(), end_date.isoformat())
-    completed = sum(1 for l in logs if l.pct >= 0.5)
+    completed = sum(1 for log in logs if log.pct >= 0.5)
     total = (end_date - first_day).days + 1
 
     pct = completed / total if total > 0 else 0
@@ -499,11 +498,10 @@ def get_profile_dashboard(db: Session, profile: models.Profile):
     for tpl in templates:
         total_days = 0
         completed_days = 0
-        streak = 0
         current_streak = 0
         last_done = None
-
-        for log in sorted(all_logs, key=lambda l: l.date, reverse=True):
+ 
+        for log in sorted(all_logs, key=lambda log: log.date, reverse=True):
             entry = next(
                 (e for e in log.habit_entries if e.habit_id == tpl.habit_key),
                 None
@@ -562,6 +560,14 @@ def get_health(db: Session, db_url: str, db_engine_type: str):
     )
 
 
+def reset_all_data(db: Session):
+    """Delete all logs and rewards. Keeps profiles and habits."""
+    db.query(models.HabitEntry).delete(synchronize_session=False)
+    db.query(models.DayLog).delete(synchronize_session=False)
+    db.query(models.WeekReward).delete(synchronize_session=False)
+    db.commit()
+
+
 def get_export_data(db: Session):
     logs = db.query(models.DayLog).join(models.Profile).order_by(
         models.Profile.slug, models.DayLog.date
@@ -607,7 +613,7 @@ def seed_default_data(db: Session):
             age=tpl["age"],
             avatar=tpl["avatar"],
             theme=tpl["theme"],
-            pin_hash=_hash_pin(tpl["pin"]) if tpl.get("pin") else None,
+            pin_hash=_hash_pin(str(tpl.get("pin"))) if tpl.get("pin") else None,
             weekly_reward_base=tpl["weekly_reward_base"],
             weekly_reward_full=tpl["weekly_reward_full"],
             monthly_reward_desc=tpl["monthly_reward_desc"],
@@ -617,7 +623,7 @@ def seed_default_data(db: Session):
         db.flush()
 
         # Habit templates + micro-habits
-        habit_list = HABIT_TEMPLATES.get(tpl["slug"], [])
+        habit_list = HABIT_TEMPLATES.get(str(tpl["slug"]), [])
         for i, h in enumerate(habit_list):
             ht = models.HabitTemplate(
                 profile_id=profile.id,
@@ -634,12 +640,14 @@ def seed_default_data(db: Session):
             db.add(ht)
             db.flush()
 
-            for j, desc in enumerate(h.get("micro_habits", [])):
-                db.add(models.MicroHabit(
-                    habit_template_id=ht.id,
-                    description=desc,
-                    sort_order=j,
-                ))
+            raw_mh = h.get("micro_habits", [])
+            if isinstance(raw_mh, list):
+                for j, desc in enumerate(raw_mh):
+                    db.add(models.MicroHabit(
+                        habit_template_id=ht.id,
+                        description=str(desc),
+                        sort_order=j,
+                    ))
 
         # Default weekly reward tiers
         for tier in DEFAULT_WEEKLY_TIERS:

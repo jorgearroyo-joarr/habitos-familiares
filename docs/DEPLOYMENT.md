@@ -1,3 +1,4 @@
+<!-- Version: 1.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # 🚀 Guía de Despliegue - HábitosFam
 
 Este documento detalla cómo poner tu aplicación en internet de forma **completamente gratuita**.

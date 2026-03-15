@@ -1,0 +1,2 @@
+backend\crud.py:637: error: Incompatible types in assignment (expression has type "object", variable has type "list[str]")  [assignment]
+Found 1 error in 1 file (checked 11 source files)

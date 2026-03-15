@@ -1,0 +1,9 @@
+backend\crud.py:330: error: Name "check" is not defined  [name-defined]
+backend\crud.py:333: error: Name "check" is not defined  [name-defined]
+backend\crud.py:335: error: Name "check" is not defined  [name-defined]
+backend\crud.py:509: error: Cannot determine type of "last_done"  [has-type]
+backend\crud.py:510: error: Cannot determine type of "last_done"  [has-type]
+backend\crud.py:511: error: Name "current_streak" is not defined  [name-defined]
+backend\crud.py:525: error: Name "current_streak" is not defined  [name-defined]
+backend\crud.py:632: error: "object" has no attribute "__iter__"; maybe "__dir__" or "__str__"? (not iterable)  [attr-defined]
+Found 8 errors in 1 file (checked 11 source files)

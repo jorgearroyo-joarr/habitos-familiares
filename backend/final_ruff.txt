@@ -1,0 +1,80 @@
+F811 [*] Redefinition of unused `BaseSettings` from line 6
+ --> backend\config.py:6:31
+  |
+4 | Supports SQLite, PostgreSQL (Supabase), and MySQL.
+5 | """
+6 | from pydantic_settings import BaseSettings
+  |                               ------------ previous definition of `BaseSettings` here
+7 | from pydantic_settings import BaseSettings
+  |                               ^^^^^^^^^^^^ `BaseSettings` redefined here
+8 | from typing import List
+  |
+help: Remove definition: `BaseSettings`
+
+F821 Undefined name `check`
+   --> backend\crud.py:330:15
+    |
+329 |     for i in range(365):
+330 |         key = check.isoformat()
+    |               ^^^^^
+331 |         if key in log_dates:
+332 |             streak += 1
+    |
+
+F821 Undefined name `check`
+   --> backend\crud.py:333:13
+    |
+331 |         if key in log_dates:
+332 |             streak += 1
+333 |             check -= timedelta(days=1)
+    |             ^^^^^
+334 |         elif i == 0:
+335 |             check -= timedelta(days=1)
+    |
+
+F821 Undefined name `last_done`
+   --> backend\crud.py:509:24
+    |
+507 |                 if entry.done:
+508 |                     completed_days += 1
+509 |                     if last_done is None or (last_done and
+    |                        ^^^^^^^^^
+510 |                         (date.fromisoformat(last_done) - date.fromisoformat(log.date)).days <= 1):
+511 |                         current_streak += 1
+    |
+
+F821 Undefined name `last_done`
+   --> backend\crud.py:509:46
+    |
+507 |                 if entry.done:
+508 |                     completed_days += 1
+509 |                     if last_done is None or (last_done and
+    |                                              ^^^^^^^^^
+510 |                         (date.fromisoformat(last_done) - date.fromisoformat(log.date)).days <= 1):
+511 |                         current_streak += 1
+    |
+
+F821 Undefined name `last_done`
+   --> backend\crud.py:510:45
+    |
+508 |                     completed_days += 1
+509 |                     if last_done is None or (last_done and
+510 |                         (date.fromisoformat(last_done) - date.fromisoformat(log.date)).days <= 1):
+    |                                             ^^^^^^^^^
+511 |                         current_streak += 1
+512 |                     last_done = log.date
+    |
+
+F821 Undefined name `current_streak`
+   --> backend\crud.py:511:25
+    |
+509 |                     if last_done is None or (last_done and
+510 |                         (date.fromisoformat(last_done) - date.fromisoformat(log.date)).days <= 1):
+511 |                         current_streak += 1
+    |                         ^^^^^^^^^^^^^^
+512 |                     last_done = log.date
+513 |                 else:
+    |
+
+Found 7 errors.
+[*] 1 fixable with the `--fix` option.

@@ -4,9 +4,7 @@ Application settings via pydantic-settings + python-dotenv.
 Supports SQLite, PostgreSQL (Supabase), and MySQL.
 """
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
 from typing import List
-import os
 
 
 class Settings(BaseSettings):
