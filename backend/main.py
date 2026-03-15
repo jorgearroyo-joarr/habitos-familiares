@@ -102,9 +102,8 @@ def public_health():
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 DIST_DIR = FRONTEND_DIR / "dist"
 
-# Always serve from source (frontend/) for development
-# To serve from dist/, remove or rename the frontend/ directory
-STATIC_DIR = FRONTEND_DIR
+# Determine which directory to serve (dist if it exists, otherwise source)
+STATIC_DIR = DIST_DIR if DIST_DIR.exists() else FRONTEND_DIR
 
 logger.info("📂 Serving static files from: %s", STATIC_DIR.absolute())
 

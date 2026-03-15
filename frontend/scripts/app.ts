@@ -118,16 +118,52 @@ export function setupPinInputs() {
     const inputs = document.querySelectorAll('.pin-input') as NodeListOf<HTMLInputElement>;
     inputs.forEach((inp, idx) => {
         inp.addEventListener('input', () => {
-            if (inp.value.length === 1 && idx < inputs.length - 1) {
-                inputs[idx + 1].focus();
+            // Handle single character input
+            const val = inp.value;
+            if (val.length > 1) {
+                inp.value = val.slice(-1); // Keep only last digit
+            }
+            if (inp.value.length === 1) {
+                if (idx < inputs.length - 1) {
+                    inputs[idx + 1].focus();
+                } else if (idx === inputs.length - 1) {
+                    submitLogin(); // Auto-submit on 4th digit
+                }
             }
         });
+        
         inp.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !inp.value && idx > 0) {
                 inputs[idx - 1].focus();
             }
             if (e.key === 'Enter') {
                 submitLogin();
+            }
+            if (e.key === 'ArrowLeft' && idx > 0) {
+                inputs[idx - 1].focus();
+            }
+            if (e.key === 'ArrowRight' && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+            }
+        });
+
+        // Handle pasting a full PIN
+        inp.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData?.getData('text') || '').trim();
+            if (/^\d{1,4}$/.test(text)) {
+                for (let i = 0; i < text.length; i++) {
+                    if (inputs[i]) {
+                        inputs[i].value = text[i];
+                    }
+                }
+                const focusIdx = Math.min(text.length, inputs.length - 1);
+                if (focusIdx < inputs.length) {
+                   inputs[focusIdx].focus();
+                }
+                if (text.length === 4) {
+                    submitLogin();
+                }
             }
         });
     });
