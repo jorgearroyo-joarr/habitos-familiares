@@ -1,4 +1,4 @@
-<!-- Version: 3.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 3.1.1 | Updated: 2026-03-15 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -10,7 +10,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [3.1.0] - 2026-03-15
+## [3.1.1] - 2026-03-15
+### Fixed
+- **Lógica de Estrellas y Micro-hábitos (CRÍTICO)**:
+    - Corregido acoplamiento erróneo: ahora el estado de micro-hábitos alimenta el progreso del hábito principal, no al revés
+    - Eliminado comportamiento que marcaba todos los micro-hábitos al marcar el hábito principal
+    - Ahora al completar todos los micro-hábitos, el hábito se marca automáticamente como completado
+    - Agregado cálculo dinámico de "estrella ganada" basado en micro-hábitos completados
+    - Mejorado feedback visual: estrellas ahora muestran estado pendiente (☆) vs ganado (⭐)
+
+- **Tarjetas Colapsables (Accordion)**:
+    - Optimizado rendimiento: ahora las tarjetas no re-renderizan todo el perfil al interactuar
+    - Agregadas animaciones CSS suaves para expandir/colapsar mini-tasks
+    - El estado de expansión ahora se mantiene correctamente sin parpadeo
+
+- **Panel Admin**:
+    - Agregado Error Boundary global para capturar y mostrar errores de forma amigable
+    - Mejorado manejo de errores de red y conexiones
+    - La sesión ahora muestra mensajes claros cuando expira el PIN
 ### Added
 *   **Sistema de Dominio de Hábitos (Habit Mastery)**: 
     - Nuevo sistema de "estrellas permanentes" - los hábitos se dominan después de 21 días consecutivos

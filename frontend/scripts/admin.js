@@ -10,6 +10,37 @@ let profiles = [];
 let appSettings = {};
 let currentSection = 'profiles';
 
+// ── Global Error Handler ───────────────────────
+
+function showGlobalError(msg, type = 'error') {
+    const el = document.getElementById('global-error');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = `global-error ${type}`;
+    el.classList.remove('hidden');
+    setTimeout(() => {
+        el.classList.add('hidden');
+    }, 5000);
+}
+
+function clearGlobalError() {
+    const el = document.getElementById('global-error');
+    if (el) {
+        el.classList.add('hidden');
+    }
+}
+
+// Global error handlers
+window.addEventListener('error', (e) => {
+    console.error('Global error:', e.error);
+    showGlobalError('Error de conexión. Verificando...', 'warning');
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('Unhandled rejection:', e.reason);
+    showGlobalError('Error de conexión. Intentando continuar...', 'warning');
+});
+
 // ── API helper ────────────────────────────────
 
 async function apiCall(path, opts = {}) {
@@ -18,13 +49,24 @@ async function apiCall(path, opts = {}) {
         'X-Admin-Pin': adminPin,
         ...opts.headers,
     };
-    const res = await fetch(`${API}${path}`, { ...opts, headers });
-    if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: 'Error' }));
-        throw new Error(err.detail || `HTTP ${res.status}`);
+    try {
+        const res = await fetch(`${API}${path}`, { ...opts, headers });
+        if (res.status === 401) { 
+            logout(); 
+            showGlobalError('Sesión expirada. Por favor ingresa de nuevo.', 'warning');
+            throw new Error('Unauthorized'); 
+        }
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: 'Error' }));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+        return res.json();
+    } catch (e) {
+        if (e.message === 'Failed to fetch' || e.name === 'TypeError') {
+            showGlobalError('Error de conexión con el servidor. Verificando...', 'warning');
+        }
+        throw e;
     }
-    return res.json();
 }
 
 // ── Login/Logout ──────────────────────────────
@@ -76,15 +118,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Dashboard ─────────────────────────────────
 
 async function loadDashboard() {
+    clearGlobalError();
     try {
-        // Load settings first for currency symbol
-        try { appSettings = await apiCall('/api/admin/settings'); } catch (e) { appSettings = { currency_symbol: '$' }; }
+        try { 
+            appSettings = await apiCall('/api/admin/settings'); 
+        } catch (e) { 
+            console.warn('Failed to load settings:', e);
+            appSettings = { currency_symbol: '$', app_name: 'HábitosFam' }; 
+        }
         profiles = await apiCall('/api/admin/profiles');
         populateProfileSelects();
         loadProfiles();
         loadSettings();
         loadHealth();
     } catch (e) {
+        console.error('Dashboard load error', e);
+        if (e.message.includes('401') || e.message.includes('Unauthorized')) {
+            showGlobalError('PIN de sesión expirado. Por favor ingresa de nuevo.', 'warning');
+            logout();
+        } else {
+            showGlobalError('Error al cargar el panel: ' + e.message, 'error');
+        }
+    }
+}
         console.error('Dashboard load error', e);
     }
 }

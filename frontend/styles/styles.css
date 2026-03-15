@@ -472,6 +472,15 @@ body::before {
   margin-top: 4px;
 }
 
+.habit-stars.star-pending {
+  color: #64748b;
+}
+
+.habit-stars.star-earned {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
 .habit-check {
   width: 28px;
   height: 28px;
@@ -501,10 +510,17 @@ body::before {
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: none;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out, padding 0.3s ease-out;
 }
 
 .habit-card.expanded .mini-tasks {
   display: block;
+  max-height: 500px;
+  opacity: 1;
+  padding-top: 12px;
 }
 
 .mini-task {
@@ -545,7 +561,7 @@ body::before {
 .habit-expand {
   font-size: 0.75rem;
   color: var(--text-muted);
-  transition: transform 0.2s;
+  transition: transform 0.3s ease;
   cursor: pointer;
 }
 

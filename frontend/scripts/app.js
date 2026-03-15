@@ -471,10 +471,16 @@ function createHabitCard(habit, hState, slug) {
     const card = document.createElement('div');
     const profile = profiles.find(p => p.slug === slug);
     const themeClass = `${profile?.theme || slug}-theme`;
-    card.className = `habit-card ${themeClass}${hState.done ? ' completed' : ''}${habit.is_mastered ? ' mastered' : ''}`;
+    
+    const microHabits = habit.micro_habits || [];
+    const activeMicro = microHabits.filter(m => m.is_active);
+    const doneCount = activeMicro.filter((_, i) => hState.miniTasks[i]).length;
+    const allMicroDone = activeMicro.length > 0 && doneCount === activeMicro.length;
+    
+    const starEarned = hState.done || allMicroDone;
+    card.className = `habit-card ${themeClass}${starEarned ? ' completed' : ''}${habit.is_mastered ? ' mastered' : ''}`;
     card.id = `card-${slug}-${habit.habit_key}`;
 
-    const microHabits = habit.micro_habits || [];
     const miniTasksHTML = microHabits.filter(m => m.is_active).map((mh, i) => {
         const done = hState.miniTasks[i] || false;
         return `
@@ -483,9 +489,6 @@ function createHabitCard(habit, hState, slug) {
             <span>${mh.description}</span>
         </div>`;
     }).join('');
-
-    const activeMicro = microHabits.filter(m => m.is_active);
-    const doneCount = activeMicro.filter((_, i) => hState.miniTasks[i]).length;
     
     // Mastery display
     const masteryBadge = habit.is_mastered 
@@ -496,17 +499,21 @@ function createHabitCard(habit, hState, slug) {
     
     // Bonus stars for mastered habits
     const bonusStar = habit.is_mastered ? ' +⭐' : '';
+    
+    // Star status: filled if earned, outline if not
+    const starStatus = starEarned ? '⭐' : '☆';
+    const starClass = starEarned ? 'star-earned' : 'star-pending';
 
     card.innerHTML = `
     <div class="habit-icon">${habit.icon}</div>
     <div class="habit-content">
         <div class="habit-name">${habit.name} ${masteryBadge}</div>
         <div class="habit-desc">${habit.description || ''}</div>
-        <div class="habit-stars">⭐ ${habit.stars} estrella${habit.stars !== 1 ? 's' : ''}${bonusStar} · ${doneCount}/${activeMicro.length} micro-hábitos</div>
+        <div class="habit-stars ${starClass}">${starStatus} ${habit.stars} estrella${habit.stars !== 1 ? 's' : ''}${bonusStar} · ${doneCount}/${activeMicro.length} micro-hábitos</div>
         <div class="mini-tasks">${miniTasksHTML}</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div class="habit-check" id="check-${slug}-${habit.habit_key}" onclick="toggleHabit('${slug}', '${habit.habit_key}')">${hState.done ? '✓' : ''}</div>
+        <div class="habit-check" id="check-${slug}-${habit.habit_key}" onclick="toggleHabit('${slug}', '${habit.habit_key}')">${starEarned ? '✓' : ''}</div>
         <div class="habit-expand" onclick="toggleExpand('${slug}','${habit.habit_key}',event)">▼</div>
     </div>
     `;
@@ -519,7 +526,46 @@ function createHabitCard(habit, hState, slug) {
 function toggleExpand(slug, habitKey, e) {
     e.stopPropagation();
     const card = document.getElementById(`card-${slug}-${habitKey}`);
-    if (card) card.classList.toggle('expanded');
+    if (card) {
+        card.classList.toggle('expanded');
+    }
+}
+
+function updateHabitCardUI(slug, habitKey) {
+    const card = document.getElementById(`card-${slug}-${habitKey}`);
+    const check = document.getElementById(`check-${slug}-${habitKey}`);
+    const starsEl = card?.querySelector('.habit-stars');
+    if (!card || !check || !starsEl) return;
+
+    const todayKey = today();
+    const habits = state[slug]?.habits?.[todayKey] || {};
+    const hState = habits[habitKey] || { done: false, miniTasks: {} };
+    const config = (habitsConfig[slug] || []).find(h => h.habit_key === habitKey);
+    const micros = (config?.micro_habits || []).filter(m => m.is_active);
+    const doneCount = micros.filter((_, i) => hState.miniTasks[i]).length;
+    const allMicroDone = micros.length > 0 && doneCount === micros.length;
+    const starEarned = hState.done || allMicroDone;
+
+    if (starEarned) {
+        card.classList.add('completed');
+        check.textContent = '✓';
+        starsEl.classList.add('star-earned');
+        starsEl.classList.remove('star-pending');
+        starsEl.innerHTML = starsEl.innerHTML.replace('☆', '⭐');
+    } else {
+        card.classList.remove('completed');
+        check.textContent = '';
+        starsEl.classList.remove('star-earned');
+        starsEl.classList.add('star-pending');
+        starsEl.innerHTML = starsEl.innerHTML.replace('⭐', '☆');
+    }
+
+    if (starsEl.innerHTML.includes('micro-hábitos')) {
+        starsEl.innerHTML = starsEl.innerHTML.replace(
+            /\d+\/\d+ micro-hábitos/,
+            `${doneCount}/${micros.length} micro-hábitos`
+        );
+    }
 }
 
 function toggleHabit(slug, habitKey) {
@@ -528,21 +574,18 @@ function toggleHabit(slug, habitKey) {
     const habits = state[slug].habits[todayKey];
     if (!habits[habitKey]) habits[habitKey] = { done: false, miniTasks: {} };
 
-    habits[habitKey].done = !habits[habitKey].done;
+    const wasDone = habits[habitKey].done;
+    habits[habitKey].done = !wasDone;
 
-    // Auto-complete micro tasks when main toggled on
-    if (habits[habitKey].done) {
-        const config = (habitsConfig[slug] || []).find(h => h.habit_key === habitKey);
-        const micros = (config?.micro_habits || []).filter(m => m.is_active);
-        micros.forEach((_, i) => { habits[habitKey].miniTasks[i] = true; });
+    if (!wasDone) {
         playCheckSound();
-    } else {
-        habits[habitKey].miniTasks = {};
     }
 
     saveState();
     syncHabitsToAPI(slug);
-    renderProfile(slug);
+    updateHabitCardUI(slug, habitKey);
+    updateDailyProgress(slug);
+    updateCompleteButton(slug);
 }
 
 function toggleMiniTask(slug, habitKey, idx, e) {
@@ -555,27 +598,52 @@ function toggleMiniTask(slug, habitKey, idx, e) {
     const wasChecked = habits[habitKey].miniTasks[idx];
     habits[habitKey].miniTasks[idx] = !wasChecked;
 
-    // Dopamine burst on checking a micro-task
+    const config = (habitsConfig[slug] || []).find(h => h.habit_key === habitKey);
+    const micros = (config?.micro_habits || []).filter(m => m.is_active);
+    const allDone = micros.length > 0 && micros.every((_, i) => habits[habitKey].miniTasks[i]);
+    const anyChecked = micros.some((_, i) => habits[habitKey].miniTasks[i]);
+
     if (!wasChecked) {
         playMicroCheckSound();
         spawnMicroSparkle(e);
     }
 
-    // Auto-complete if all micro-tasks done
-    const config = (habitsConfig[slug] || []).find(h => h.habit_key === habitKey);
-    const micros = (config?.micro_habits || []).filter(m => m.is_active);
-    const allDone = micros.every((_, i) => habits[habitKey].miniTasks[i]);
     if (allDone && micros.length > 0) {
-        habits[habitKey].done = true;
-        playCheckSound();
-        // Extra dopamine: mini confetti burst for completing all micro-habits
-        const rect = e.target.closest('.habit-card')?.getBoundingClientRect();
-        if (rect) launchMiniConfetti(rect.left + rect.width / 2, rect.top);
+        if (!habits[habitKey].done) {
+            habits[habitKey].done = true;
+            playCheckSound();
+            const rect = e.target.closest('.habit-card')?.getBoundingClientRect();
+            if (rect) launchMiniConfetti(rect.left + rect.width / 2, rect.top);
+        }
+    } else if (wasChecked && !anyChecked) {
+        habits[habitKey].done = false;
     }
 
     saveState();
     syncHabitsToAPI(slug);
-    renderProfile(slug);
+    updateMiniTaskUI(slug, habitKey, idx, e);
+    updateHabitCardUI(slug, habitKey);
+    updateDailyProgress(slug);
+    updateCompleteButton(slug);
+}
+
+function updateMiniTaskUI(slug, habitKey, idx, e) {
+    const miniTask = document.getElementById(`mini-${slug}-${habitKey}-${idx}`);
+    if (!miniTask) return;
+
+    const todayKey = today();
+    const habits = state[slug]?.habits?.[todayKey] || {};
+    const hState = habits[habitKey] || { done: false, miniTasks: {} };
+    const isChecked = hState.miniTasks[idx];
+
+    if (isChecked) {
+        miniTask.classList.add('done');
+        miniTask.querySelector('.mini-task-check').textContent = '✓';
+    } else {
+        miniTask.classList.remove('done');
+        miniTask.querySelector('.mini-task-check').textContent = '';
+    }
+}
 }
 
 // ── API Sync ─────────────────────────────────

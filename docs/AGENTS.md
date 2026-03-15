@@ -1,4 +1,4 @@
-<!-- Version: 2.2.0 | Updated: 2026-03-15 | Standard: AGENTS.md 2025 -->
+<!-- Version: 2.2.1 | Updated: 2026-03-15 | Standard: AGENTS.md 2025 -->
 
 # AGENTS.md – HábitosFam
 
@@ -287,5 +287,6 @@ This project follows [Semantic Versioning 2.0](https://semver.org) and [Keep a C
 
 | Version | Date | Change |
 |---------|------|--------|
+| 2.2.1 | 2026-03-15 | Fixed: Accordion cards, star/micro-habit logic, admin error handling |
 | 2.1.0 | 2026-03-15 | Added: Testing, Security, Agent Policies, Versioning, Skills reference |
 | 2.0.0 | 2026-03-01 | Initial AGENTS.md (AGENT.md renamed to AGENTS.md 2025 standard) |
