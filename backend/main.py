@@ -3,6 +3,7 @@ HábitosFam – backend/main.py
 FastAPI application entry point.
 Serves the REST API and static frontend files.
 """
+
 import logging
 import sys
 from contextlib import asynccontextmanager
@@ -50,6 +51,7 @@ async def lifespan(app: FastAPI):
     # Auto-seed default profiles, habits, micro-habits, reward tiers
     from . import crud
     from .database import SessionLocal
+
     db = SessionLocal()
     try:
         crud.seed_default_data(db)
@@ -100,33 +102,41 @@ def public_health():
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 DIST_DIR = FRONTEND_DIR / "dist"
 
-# Determine which directory to serve (dist if it exists, otherwise source)
-STATIC_DIR = DIST_DIR if DIST_DIR.exists() else FRONTEND_DIR
+# Always serve from source (frontend/) for development
+# To serve from dist/, remove or rename the frontend/ directory
+STATIC_DIR = FRONTEND_DIR
 
 logger.info("📂 Serving static files from: %s", STATIC_DIR.absolute())
+
 
 # Mount admin page
 @app.get("/admin", include_in_schema=False)
 async def serve_admin():
     return FileResponse(STATIC_DIR / "admin.html")
 
+
 # Serve index.html for root
 @app.get("/", include_in_schema=False)
 async def serve_index():
     return FileResponse(STATIC_DIR / "index.html")
 
+
 # Serve favicon at root
 @app.get("/favicon.svg", include_in_schema=False)
 async def serve_favicon_svg():
     target = STATIC_DIR / "public" / "favicon.svg"
-    if not target.exists(): target = STATIC_DIR / "favicon.svg"
+    if not target.exists():
+        target = STATIC_DIR / "favicon.svg"
     return FileResponse(target)
+
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def serve_favicon_ico():
     target = STATIC_DIR / "public" / "favicon.svg"
-    if not target.exists(): target = STATIC_DIR / "favicon.svg"
+    if not target.exists():
+        target = STATIC_DIR / "favicon.svg"
     return FileResponse(target)
+
 
 # Serve all other static assets (js, css, etc.)
 app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

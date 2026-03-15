@@ -1,4 +1,4 @@
-<!-- Version: 2.2.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 2.3.1 | Updated: 2026-03-15 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -9,6 +9,11 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 ## [Unreleased]
+
+## [2.3.1] - 2026-03-15
+### Fixed
+- **CSS Loading** — Fixed CSS not loading by serving from `frontend/` source directory instead of `dist/`
+- **Tests** — Fixed `TestMonthClose` tests that were failing due to PIN hash mock issues
 
 ## [2.3.0] - 2026-03-15
 ### Added

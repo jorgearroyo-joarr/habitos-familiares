@@ -104,9 +104,14 @@ class TestMonthClose:
     """Test month auto-close endpoint."""
 
     def test_close_current_month(self, client, db_session, monkeypatch):
-        # Mock admin PIN
-        monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
-        monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+        fixed_hash = "mock_pin_hash_1234"
+        monkeypatch.setattr("backend.crud._hash_pin", lambda x: fixed_hash)
+
+        import backend.models as models
+
+        cfg = db_session.query(models.AppSettings).filter_by(id=1).first()
+        cfg.admin_pin_hash = fixed_hash
+        db_session.commit()
 
         response = client.post(
             "/api/admin/profiles/alana/close-current-month",
@@ -119,8 +124,14 @@ class TestMonthClose:
         assert "reward_unlocked" in data
 
     def test_close_specific_month(self, client, db_session, monkeypatch):
-        monkeypatch.setattr("backend.crud._hash_pin", lambda x: x)
-        monkeypatch.setattr("backend.data_config.DEFAULT_ADMIN_PIN", "1234")
+        fixed_hash = "mock_pin_hash_1234"
+        monkeypatch.setattr("backend.crud._hash_pin", lambda x: fixed_hash)
+
+        import backend.models as models
+
+        cfg = db_session.query(models.AppSettings).filter_by(id=1).first()
+        cfg.admin_pin_hash = fixed_hash
+        db_session.commit()
 
         response = client.post(
             "/api/admin/profiles/alana/close-month?month_key=2026-03",
