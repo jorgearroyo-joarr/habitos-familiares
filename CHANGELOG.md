@@ -25,7 +25,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - Sistema de recompensas visuales y sonoras mejorado
 
 ### Fixed
-*   **Error del Panel Admin**: Corregido el problema que impedía acceder al admin - ahora carga correctamente desde admin.js
+*   **Error del Panel Admin (Production)**: Corregido el problema que impedía acceder al admin en producción - ahora admin.html se compila correctamente a dist/ y se sirve desde ahí
+*   **Error del Panel Admin (Local)**: Corregido el problema que impedía acceder al admin - ahora carga correctamente desde admin.js
 
 ### Changed
 *   `backend/models.py` - Agregados campos: `consecutive_days`, `is_mastered`, `mastered_at` a HabitTemplate
