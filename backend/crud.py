@@ -312,6 +312,9 @@ def upsert_day_log(
         db.add(log)
         db.flush()
 
+    # Track newly mastered habits for dopamine feedback
+    newly_mastered = []
+
     # Upsert each habit entry
     for h in habits_data:
         entry = (
@@ -324,6 +327,9 @@ def upsert_day_log(
         )
 
         mini_json = json.dumps(h.mini_tasks) if h.mini_tasks else "{}"
+
+        was_done = entry.done if entry else False
+        is_done = h.done
 
         if entry:
             entry.done = h.done
@@ -339,6 +345,12 @@ def upsert_day_log(
             )
             db.add(entry)
 
+        # Update habit mastery if habit was just completed
+        if is_done and not was_done:
+            mastery_result = _update_habit_mastery(db, profile_id, h.habit_id)
+            if mastery_result.get("just_mastered"):
+                newly_mastered.append(mastery_result)
+
     # Recount
     entries = (
         db.query(models.HabitEntry).filter(models.HabitEntry.day_log_id == log.id).all()
@@ -351,7 +363,69 @@ def upsert_day_log(
 
     db.commit()
     db.refresh(log)
-    return log
+    return log, newly_mastered
+
+
+# ── Habit Mastery System ─────────────────────────────────────────
+
+MASTERY_DAYS_REQUIRED = 21  # Days to master a habit
+
+
+def _update_habit_mastery(db: Session, profile_id: int, habit_key: str):
+    """Update consecutive days and mastery status for a habit."""
+    from datetime import timedelta
+
+    # Get the habit template
+    habit_tpl = (
+        db.query(models.HabitTemplate)
+        .filter(
+            models.HabitTemplate.profile_id == profile_id,
+            models.HabitTemplate.habit_key == habit_key,
+        )
+        .first()
+    )
+    if not habit_tpl or habit_tpl.is_mastered:
+        return {"consecutive_days": 0, "is_mastered": False, "just_mastered": False}
+
+    # Calculate consecutive days from day logs
+    today = date.today()
+    consecutive = 0
+    check_date = today
+
+    for i in range(MASTERY_DAYS_REQUIRED + 30):  # Check up to 30 days back
+        log = get_day_log(db, profile_id, check_date.isoformat())
+        if log:
+            entry = next(
+                (e for e in log.habit_entries if e.habit_id == habit_key), None
+            )
+            if entry and entry.done:
+                consecutive += 1
+            elif check_date != today:  # Allow today to not be done yet
+                break
+        check_date -= timedelta(days=1)
+
+    was_mastered = habit_tpl.is_mastered
+    habit_tpl.consecutive_days = consecutive
+
+    if consecutive >= MASTERY_DAYS_REQUIRED and not was_mastered:
+        habit_tpl.is_mastered = True
+        habit_tpl.mastered_at = datetime.utcnow()
+        db.commit()
+        db.refresh(habit_tpl)
+        return {
+            "consecutive_days": consecutive,
+            "is_mastered": True,
+            "just_mastered": True,
+            "habit_name": habit_tpl.name,
+            "habit_icon": habit_tpl.icon,
+        }
+
+    db.commit()
+    return {
+        "consecutive_days": consecutive,
+        "is_mastered": habit_tpl.is_mastered,
+        "just_mastered": False,
+    }
 
 
 def complete_day(
@@ -460,12 +534,27 @@ def compute_week_stats(
 
     stars = 0
     completed_days = 0
+
+    # Get mastered habits count for bonus
+    mastered_habits = (
+        db.query(models.HabitTemplate)
+        .filter(
+            models.HabitTemplate.profile_id == profile.id,
+            models.HabitTemplate.is_mastered == True,
+        )
+        .count()
+    )
+
     for d_str in week_dates:
         log = log_map.get(d_str)
         if log:
             stars += log.completed_count
+            # Bonus star for perfect day
             if log.bonus_star:
                 stars += 1
+            # Bonus stars for mastered habits (dopamine reward for consistency)
+            if log.pct >= 0.5 and mastered_habits > 0:
+                stars += mastered_habits  # +1 per mastered habit
             if log.pct >= 0.5:
                 completed_days += 1
 
@@ -1007,6 +1096,76 @@ def get_habit_templates_catalog():
                             ),
                             schemas.MicroHabitCreate(
                                 description="Estirar", sort_order=3
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            schemas.HabitTemplateCategory(
+                category="tecnologia",
+                description="Tecnología para el Bien - Usar la tecnología de manera positiva",
+                age_range="6-18",
+                habits=[
+                    schemas.HabitTemplateCreate(
+                        habit_key="tech_crear",
+                        name="Crear con Tecnología",
+                        icon="💻",
+                        category="tecnologia",
+                        stars=2,
+                        description="Crear algo digital positivo",
+                        details="Programar, diseñar, escribir código",
+                        motivation="¡La tecnología te permite crear cosas increíbles!",
+                        sort_order=1,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Practicar programación o código",
+                                sort_order=1,
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Crear algo digital (dibujo, historia, juego)",
+                                sort_order=2,
+                            ),
+                        ],
+                    ),
+                    schemas.HabitTemplateCreate(
+                        habit_key="tech_aprender",
+                        name="Aprender con Tecnología",
+                        icon="🔍",
+                        category="tecnologia",
+                        stars=2,
+                        description="Investigar y aprender temas positivos",
+                        details="Búsquedas productivas, cursos online",
+                        motivation="¡Internet tiene todo el conocimiento del mundo!",
+                        sort_order=2,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Investigar un tema que me interese",
+                                sort_order=1,
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Ver un tutorial o curso constructivo",
+                                sort_order=2,
+                            ),
+                        ],
+                    ),
+                    schemas.HabitTemplateCreate(
+                        habit_key="tech_compartir",
+                        name="Compartir Positivamente",
+                        icon="📱",
+                        category="tecnologia",
+                        stars=2,
+                        description="Usar la tecnología para conectar y ayudar",
+                        details="Mensajes positivos, compartir conocimientos",
+                        motivation="¡Comparte cosas buenas con el mundo!",
+                        sort_order=3,
+                        micro_habits=[
+                            schemas.MicroHabitCreate(
+                                description="Enviar un mensaje positivo a alguien",
+                                sort_order=1,
+                            ),
+                            schemas.MicroHabitCreate(
+                                description="Compartir algo útil con mi familia",
+                                sort_order=2,
                             ),
                         ],
                     ),

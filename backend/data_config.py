@@ -3,6 +3,7 @@ HábitosFam – backend/data_config.py  (v3)
 Seed templates for initial DB population.
 Called once on first startup to populate profiles, habits, micro-habits, and reward tiers.
 """
+
 import hashlib
 
 
@@ -137,6 +138,21 @@ HABIT_TEMPLATES = {
                 "📊 Contar cuánto tengo ahorrado esta semana",
             ],
         },
+        {
+            "habit_key": "tech_good",
+            "name": "Tecnología para el Bien 🌐",
+            "icon": "💻",
+            "category": "tecnologia",
+            "stars": 2,
+            "description": "Usar la tecnología para crear y ayudar",
+            "details": "Aprender, crear y compartir algo positivo",
+            "motivation": "¡La tecnología puede hacer el mundo mejor!",
+            "micro_habits": [
+                "🎨 Crear algo digital (dibujo, historia, juego)",
+                "🌍 Investigar un tema que me interese en internet",
+                "📱 Compartir algo positivo con mi familia o amigos",
+            ],
+        },
     ],
     "sofia": [
         {
@@ -229,6 +245,21 @@ HABIT_TEMPLATES = {
                 "🎯 Revisar o actualizar mi meta de ahorro personal",
             ],
         },
+        {
+            "habit_key": "tech_good",
+            "name": "Tecnología para el Bien 🌐",
+            "icon": "🚀",
+            "category": "tecnologia",
+            "stars": 2,
+            "description": "Usar la tecnología como herramienta para el bien",
+            "details": "Crear, aprender y aportar con tecnología",
+            "motivation": "¡La tecnología es poderosa: úsala para hacer el bien!",
+            "micro_habits": [
+                "💻 Programar o practicar código 20 min",
+                "🌍 Investigar y compartir una noticia positiva sobre tecnología",
+                "🤝 Usar la tecnología para ayudar a alguien (enseñar, crear para otros)",
+            ],
+        },
     ],
 }
 
@@ -236,9 +267,39 @@ HABIT_TEMPLATES = {
 # ── Default reward tiers ──────────────────────────────────────
 
 DEFAULT_WEEKLY_TIERS = [
-    {"min_pct": 0.90, "multiplier": 2.0, "label": "ÉLITE 👑",    "emoji": "👑", "sort_order": 0},
-    {"min_pct": 0.75, "multiplier": 1.5, "label": "Increíble 🌟", "emoji": "🌟", "sort_order": 1},
-    {"min_pct": 0.60, "multiplier": 1.0, "label": "Bien 💪",      "emoji": "💪", "sort_order": 2},
-    {"min_pct": 0.40, "multiplier": 0.5, "label": "Regular 🌱",   "emoji": "🌱", "sort_order": 3},
-    {"min_pct": 0.00, "multiplier": 0.0, "label": "Seguir 💙",    "emoji": "💙", "sort_order": 4},
+    {
+        "min_pct": 0.90,
+        "multiplier": 2.0,
+        "label": "ÉLITE 👑",
+        "emoji": "👑",
+        "sort_order": 0,
+    },
+    {
+        "min_pct": 0.75,
+        "multiplier": 1.5,
+        "label": "Increíble 🌟",
+        "emoji": "🌟",
+        "sort_order": 1,
+    },
+    {
+        "min_pct": 0.60,
+        "multiplier": 1.0,
+        "label": "Bien 💪",
+        "emoji": "💪",
+        "sort_order": 2,
+    },
+    {
+        "min_pct": 0.40,
+        "multiplier": 0.5,
+        "label": "Regular 🌱",
+        "emoji": "🌱",
+        "sort_order": 3,
+    },
+    {
+        "min_pct": 0.00,
+        "multiplier": 0.0,
+        "label": "Seguir 💙",
+        "emoji": "💙",
+        "sort_order": 4,
+    },
 ]

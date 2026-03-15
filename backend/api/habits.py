@@ -14,7 +14,9 @@ router = APIRouter(prefix="/api", tags=["habits"])
 
 
 @router.post("/auth/login", response_model=schemas.PinLoginOut)
-def login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)) -> schemas.PinLoginOut:
+def login(
+    payload: schemas.PinLoginIn, db: Session = Depends(get_db)
+) -> schemas.PinLoginOut:
     """Unified login: returns role (admin/user) and profile scope."""
     result = crud.verify_pin(db, payload.pin)
     if not result:
@@ -123,15 +125,25 @@ def get_today_log(slug: str, db: Session = Depends(get_db)) -> Any:
 # ── Save habits ───────────────────────────────────────────────
 
 
+class DayLogWithMasteryOut(schemas.DayLogOut):
+    newly_mastered: list[dict] = []
+
+
 @router.post(
-    "/profiles/{slug}/habits", response_model=schemas.DayLogOut, status_code=201
+    "/profiles/{slug}/habits", response_model=DayLogWithMasteryOut, status_code=201
 )
-def save_habits(slug: str, payload: schemas.DayLogIn, db: Session = Depends(get_db)) -> Any:
+def save_habits(
+    slug: str, payload: schemas.DayLogIn, db: Session = Depends(get_db)
+) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
-    log = crud.upsert_day_log(db, profile.id, payload.date, payload.habits)
-    return log
+    log, newly_mastered = crud.upsert_day_log(
+        db, profile.id, payload.date, payload.habits
+    )
+    result = schemas.DayLogOut.model_validate(log)
+    result.newly_mastered = newly_mastered
+    return result
 
 
 @router.post("/profiles/{slug}/complete-day", response_model=schemas.DayLogOut)

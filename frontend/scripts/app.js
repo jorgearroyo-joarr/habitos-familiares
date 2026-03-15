@@ -471,7 +471,7 @@ function createHabitCard(habit, hState, slug) {
     const card = document.createElement('div');
     const profile = profiles.find(p => p.slug === slug);
     const themeClass = `${profile?.theme || slug}-theme`;
-    card.className = `habit-card ${themeClass}${hState.done ? ' completed' : ''}`;
+    card.className = `habit-card ${themeClass}${hState.done ? ' completed' : ''}${habit.is_mastered ? ' mastered' : ''}`;
     card.id = `card-${slug}-${habit.habit_key}`;
 
     const microHabits = habit.micro_habits || [];
@@ -486,13 +486,23 @@ function createHabitCard(habit, hState, slug) {
 
     const activeMicro = microHabits.filter(m => m.is_active);
     const doneCount = activeMicro.filter((_, i) => hState.miniTasks[i]).length;
+    
+    // Mastery display
+    const masteryBadge = habit.is_mastered 
+        ? '<span class="mastery-badge" title="¡Hábito dominado!">👑</span>'
+        : (habit.consecutive_days > 0 
+            ? `<span class="streak-mini" title="${habit.consecutive_days} días seguidos">🔥${habit.consecutive_days}</span>`
+            : '');
+    
+    // Bonus stars for mastered habits
+    const bonusStar = habit.is_mastered ? ' +⭐' : '';
 
     card.innerHTML = `
     <div class="habit-icon">${habit.icon}</div>
     <div class="habit-content">
-        <div class="habit-name">${habit.name}</div>
+        <div class="habit-name">${habit.name} ${masteryBadge}</div>
         <div class="habit-desc">${habit.description || ''}</div>
-        <div class="habit-stars">⭐ ${habit.stars} estrella${habit.stars !== 1 ? 's' : ''} · ${doneCount}/${activeMicro.length} micro-hábitos</div>
+        <div class="habit-stars">⭐ ${habit.stars} estrella${habit.stars !== 1 ? 's' : ''}${bonusStar} · ${doneCount}/${activeMicro.length} micro-hábitos</div>
         <div class="mini-tasks">${miniTasksHTML}</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
@@ -584,11 +594,98 @@ async function syncHabitsToAPI(slug) {
     }));
 
     try {
-        await api(`/api/profiles/${slug}/habits`, {
+        const result = await api(`/api/profiles/${slug}/habits`, {
             method: 'POST',
             body: JSON.stringify({ date: todayKey, habits: entries })
         });
+        
+        // Check for newly mastered habits and trigger dopamine burst
+        if (result.newly_mastered && result.newly_mastered.length > 0) {
+            result.newly_mastered.forEach(mastery => {
+                showMasteryCelebration(mastery);
+            });
+        }
     } catch (e) { console.warn('API sync failed', e); }
+}
+
+function showMasteryCelebration(mastery) {
+    // Ultimate dopamine burst for habit mastery!
+    const emoji = mastery.habit_icon || '👑';
+    const name = mastery.habit_name || 'Hábito';
+    
+    showModal(
+        '👑🎉',
+        '¡HÁBITO DOMINADO!',
+        `¡Felicidades! Has completado "${name}" durante 21 días seguidos. ¡Ahora es parte de ti!`,
+        '⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐'
+    );
+    
+    // Golden confetti burst
+    launchGoldenConfetti();
+    
+    // Special sound
+    playMasterySound();
+}
+
+function launchGoldenConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#FFD700', '#FFA500', '#FFC107', '#FFD700', '#FFF8DC'];
+    const pieces = Array.from({ length: 100 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -20,
+        r: Math.random() * 8 + 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 8,
+        vy: Math.random() * 4 + 3,
+        va: (Math.random() - 0.5) * 0.2,
+        angle: Math.random() * Math.PI * 2,
+        life: 1
+    }));
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        pieces.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.angle += p.va;
+            p.life -= 0.006;
+            if (p.y < canvas.height && p.life > 0) alive = true;
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.life);
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6);
+            ctx.restore();
+        });
+        if (alive) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    animate();
+}
+
+function playMasterySound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        // Triumphant ascending arpeggio
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.3);
+            osc.start(ctx.currentTime + i * 0.15);
+            osc.stop(ctx.currentTime + i * 0.15 + 0.3);
+        });
+    } catch (e) { }
 }
 
 async function syncCompleteDayToAPI(slug, done, total, pct) {

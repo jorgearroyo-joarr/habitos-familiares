@@ -121,6 +121,9 @@ class HabitTemplateOut(BaseModel):
     motivation: str
     sort_order: int
     is_active: bool
+    consecutive_days: int = 0
+    is_mastered: bool = False
+    mastered_at: str | None = None
     micro_habits: list[MicroHabitOut] = []
 
 

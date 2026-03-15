@@ -1,4 +1,4 @@
-<!-- Version: 2.3.1 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 3.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -9,6 +9,32 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 ## [Unreleased]
+
+## [3.1.0] - 2026-03-15
+### Added
+*   **Sistema de Dominio de Hábitos (Habit Mastery)**: 
+    - Nuevo sistema de "estrellas permanentes" - los hábitos se dominan después de 21 días consecutivos
+    - Efectos visuales especiales (corona 👑, borde dorado) para hábitos dominados
+    - Confeti dorado y sonido triumphant al dominar un hábito
+    - Estrellas bonus semanales para hábitos dominados (+1 por hábito dominado por día completado)
+*   **Categoría "Tecnología para el Bien"**: 
+    - Nuevos hábitos para enseñar uso positivo de la tecnología
+    - Categoría disponible para todos los perfiles
+*   **Feedback Dopaminérgico Mejorado**:
+    - Celebración especial cuando se domina un hábito
+    - Sistema de recompensas visuales y sonoras mejorado
+
+### Fixed
+*   **Error del Panel Admin**: Corregido el problema que impedía acceder al admin - ahora carga correctamente desde admin.js
+
+### Changed
+*   `backend/models.py` - Agregados campos: `consecutive_days`, `is_mastered`, `mastered_at` a HabitTemplate
+*   `backend/schemas.py` - Actualizado HabitTemplateOut con nuevos campos de mastery
+*   `backend/crud.py` - Nueva lógica de mastery y cálculo de estrellas bonus
+*   `backend/api/habits.py` - Endpoint retorna información de hábitos recién dominados
+*   `frontend/app.js` - Nuevas funciones: showMasteryCelebration, launchGoldenConfetti, playMasterySound
+*   `frontend/admin.html` - Corregido src del script de admin
+*   `frontend/styles.css` - Nuevos estilos para mastery
 
 ## [3.0.0] - 2026-03-15
 ### Added

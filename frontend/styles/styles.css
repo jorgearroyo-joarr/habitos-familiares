@@ -389,6 +389,40 @@ body::before {
   transform: none;
 }
 
+/* Habit Mastery System */
+.habit-card.mastered {
+  border: 2px solid #FFD700 !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.habit-card.mastered .habit-icon {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.2)) !important;
+}
+
+.habit-card.mastered .habit-name {
+  color: #FFD700;
+}
+
+.mastery-badge {
+  font-size: 1.2rem;
+  margin-left: 4px;
+  animation: pulse-crown 2s ease-in-out infinite;
+}
+
+@keyframes pulse-crown {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.streak-mini {
+  background: rgba(255, 100, 0, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+  color: #ff6b35;
+}
+
 .sofia-theme .habit-card.completed {
   background: rgba(236, 72, 153, 0.2);
   border-color: rgba(236, 72, 153, 0.4);

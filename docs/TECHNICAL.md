@@ -1,4 +1,4 @@
-<!-- Version: 2.2.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 3.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
 # HábitosFam – Documentación Técnica
 
 > Stack: FastAPI · SQLAlchemy · SQLite (pronto: PostgreSQL/MySQL) · HTML/CSS/JS vanilla
@@ -93,6 +93,10 @@
 | description | STRING | Descripción corta |
 | motivation | STRING | Frase motivacional |
 | sort_order | INTEGER | Orden de visualización |
+| is_active | BOOLEAN | Hábito activo |
+| consecutive_days | INTEGER | Días consecutivos completados |
+| is_mastered | BOOLEAN | Hábito dominado (21+ días) |
+| mastered_at | DATETIME | Fecha cuando se dominó |
 
 ### `micro_habits`
 | Columna | Tipo | Descripción |
