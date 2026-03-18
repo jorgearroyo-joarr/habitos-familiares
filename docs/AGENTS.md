@@ -1,4 +1,4 @@
-<!-- Version: 2.3.0 | Updated: 2026-03-17 | Standard: AGENTS.md 2025 -->
+<!-- Version: 2.3.1 | Updated: 2026-03-17 | Standard: AGENTS.md 2025 -->
 
 # AGENTS.md – HábitosFam
 
@@ -21,7 +21,7 @@
 
 ## 🏗️ Architecture Overview
 
-```
+```text
 habitos-familiares/
 ├── index.html          # Main daughter-facing app
 ├── admin.html          # Parent admin panel
@@ -60,7 +60,8 @@ habitos-familiares/
 ```
 
 ### Layer Order (always follow this dependency direction)
-```
+
+```text
 config.py → database.py → models.py → schemas.py → crud.py → api/*.py → main.py
 ```
 
@@ -69,6 +70,7 @@ config.py → database.py → models.py → schemas.py → crud.py → api/*.py 
 ## 🚦 ALWAYS – ASK FIRST – NEVER
 
 ### ALWAYS ✅
+
 - Use the `apiCall` wrapper for all Admin/User frontend actions.
 - Load `appSettings` from the API for the currency symbol and app name.
 - Use Pydantic schemas for all request/response validation in the backend.
@@ -81,6 +83,7 @@ config.py → database.py → models.py → schemas.py → crud.py → api/*.py 
 - Add or update version headers in any `.md` doc file you touch.
 
 ### ASK FIRST ❓
+
 - Before changing the core DB schema (`models.py`).
 - Before adding heavy external JS libraries (>50 KB).
 - Before changing the PIN hashing mechanism.
@@ -88,6 +91,7 @@ config.py → database.py → models.py → schemas.py → crud.py → api/*.py 
 - Before elevating any privilege or bypassing an auth check — even temporarily.
 
 ### NEVER 🚫
+
 - Never put raw SQL in route handlers — use `crud.py`.
 - Never bypass the SQLAlchemy session — always use `Depends(get_db)`.
 - Never hardcode profile names/ages — always use `HABITS_DATA` / `HABITS_CONFIG`.

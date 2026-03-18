@@ -4,10 +4,15 @@ services:
     env: python
     buildCommand: ./build.sh
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health-public
     envVars:
       - key: DATABASE_URL
-        sync: false # Debes configurarlo en el Dashboard apuntando a Supabase (PostgreSQL)
+        sync: false
       - key: ADMIN_PIN
-        sync: false # Configurar contraseña segura en Dashboard
+        sync: false
       - key: DEBUG
         value: "False"
+      - key: PYTHON_VERSION
+        value: "3.11.10"
+      - key: NODE_VERSION
+        value: "20.18.0"

@@ -1,4 +1,4 @@
-<!-- Version: 3.3.1 | Updated: 2026-03-17 | Author: AI-assisted -->
+<!-- Version: 3.3.3 | Updated: 2026-03-17 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -8,43 +8,65 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## [3.3.4] - 2026-03-17
+
+### Added
+
+- **Sistema Core Loop Sentinel**: Nueva skill (`core-loop-sentinel`) y workflow (`/core-loop-repair`) para monitoreo de salud y auto-reparación del flujo de trabajo de la IA.
+- **Integración Proactiva**: El Core Loop ahora incluye un paso de auditoría de salud en su fase inicial.
+
+## [3.3.3] - 2026-03-17
+
+### Changed
+
+- `render.yaml`: Configurada infraestructura nativa con `PYTHON_VERSION` (3.11.10) y `NODE_VERSION` (20.18.0). Agregado `healthCheckPath` para monitoreo de salud.
+- `build.sh`: Refactoreado para eliminar la instalación manual de `nvm`/Node.js (ahora nativo) y la ejecución de migraciones (ahora automático en el arranque).
 
 ## [3.3.2] - 2026-03-17
+
 ### Added
-- **Mejoras de UX**: 
-    - **Spinner de carga**: Indicador visual mientras se cargan datos del API.
-    - **Toast de errores**: Mensajes de error visibles cuando falla una llamada al servidor.
+
+- **Mejoras de UX**:
+  - **Spinner de carga**: Indicador visual mientras se cargan datos del API.
+  - **Toast de errores**: Mensajes de error visibles cuando falla una llamada al servidor.
 
 ### Fixed
+
 - `backend/api/habits.py`: Corregido tipo de `created_at` (ahora usa `datetime.now()` en lugar de string).
 - `backend/api/habits.py`: Corregido uso de `DayLogWithMasteryOut` para el atributo `newly_mastered`.
 - `backend/crud.py`: Agregadas conversiones explícitas de tipos (`str()`, `float()`, `bool()`) en funciones que retornan schemas Pydantic para evitar errores de serialización.
 - `backend/api/admin.py`: Corregida línea muy larga en función `admin_login`.
 
 ## [3.3.1] - 2026-03-17
+
 ### Added
+
 - **Documentación de Base de Datos**: Nuevo documento `docs/DATABASE.md` con el esquema completo de las 9 tablas, columnas, índices, relaciones y diagramas ER.
 - **Migración Inicial de Alembic**: Nueva migración `v330_initial.py` que crea el esquema completo v3.3 desde cero. Permite a sistemas en producción que nunca usaron Alembic migrar fácilmente.
 
 ### Changed
+
 - `backend/main.py`: Eliminada la función de migración manual `run_migrations()`. Ahora usa Alembic oficialmente para todas las migraciones de esquema.
 - `docs/TECHNICAL.md`: Actualizada la sección de migraciones con referencia a `DATABASE.md` e instrucciones de Alembic.
 - `docs/AGENTS.md`: Actualizada la sección de Database Migration Guide y lista de directorios para incluir `DATABASE.md`.
 
 ### Fixed
+
 - Corregida la cadena de dependencias de migraciones de Alembic (`v330_initial` -> `c929fa34db3d` -> `1231155072f6`).
 
 ## [3.3.0] - 2026-03-18
+
 ### Added
+
 - **Mejoras UX Fase 4 (Economía Virtual)**:
-    - **Tienda (Store)**: Nueva interfaz modal para comprar Avatars y Temas usando los ahorros acumulados.
-    - **Sistema de Saldo (Balance)**: Los perfiles ahora acumulan dinero real ganado por sus hábitos en una cuenta virtual.
-    - **Personalización**: Capacidad de desbloquear y aplicar temas visuales y avatares emoji permanentes.
-    - **Endpoint de Compra**: API robusta para validación de saldo y transacciones de artículos virtuales.
+  - **Tienda (Store)**: Nueva interfaz modal para comprar Avatars y Temas usando los ahorros acumulados.
+  - **Sistema de Saldo (Balance)**: Los perfiles ahora acumulan dinero real ganado por sus hábitos en una cuenta virtual.
+  - **Personalización**: Capacidad de desbloquear y aplicar temas visuales y avatares emoji permanentes.
+  - **Endpoint de Compra**: API robusta para validación de saldo y transacciones de artículos virtuales.
 - `backend/migrations/versions/1231155072f6_add_economy_fields_to_profile.py`: Nueva migración para soporte de economía.
 
 ### Changed
+
 - `backend/models.py`: Se agregaron los campos `balance`, `unlocked_themes` y `unlocked_avatars` al modelo `Profile`.
 - `backend/crud.py`: La función `mark_reward_paid` ahora suma automáticamente el monto al balance del perfil.
 - `frontend/scripts/data.ts`: Definición del catálogo inicial de la tienda (`STORE_ITEMS`).
@@ -87,38 +109,42 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - El estado de expansión ahora se mantiene correctamente sin parpadeo
 
 - **Panel Admin**:
-    - Agregado Error Boundary global para capturar y mostrar errores de forma amigable
-    - Mejorado manejo de errores de red y conexiones
-    - La sesión ahora muestra mensajes claros cuando expira el PIN
+  - Agregado Error Boundary global para capturar y mostrar errores de forma amigable
+  - Mejorado manejo de errores de red y conexiones
+  - La sesión ahora muestra mensajes claros cuando expira el PIN
+
 ### Added
-*   **Sistema de Dominio de Hábitos (Habit Mastery)**: 
-    - Nuevo sistema de "estrellas permanentes" - los hábitos se dominan después de 21 días consecutivos
-    - Efectos visuales especiales (corona 👑, borde dorado) para hábitos dominados
-    - Confeti dorado y sonido triumphant al dominar un hábito
-    - Estrellas bonus semanales para hábitos dominados (+1 por hábito dominado por día completado)
-*   **Categoría "Tecnología para el Bien"**: 
-    - Nuevos hábitos para enseñar uso positivo de la tecnología
-    - Categoría disponible para todos los perfiles
-*   **Feedback Dopaminérgico Mejorado**:
-    - Celebración especial cuando se domina un hábito
-    - Sistema de recompensas visuales y sonoras mejorado
-*   **Migración de Base de Datos**:
-    - Nueva migración Alembic `c929fa34db3d_add_habit_mastery_columns.py` para agregar columnas de mastery
-    - Migración automática al iniciar la aplicación
+
+* **Sistema de Dominio de Hábitos (Habit Mastery)**:
+  - Nuevo sistema de "estrellas permanentes" - los hábitos se dominan después de 21 días consecutivos
+  - Efectos visuales especiales (corona 👑, borde dorado) para hábitos dominados
+  - Confeti dorado y sonido triumphant al dominar un hábito
+  - Estrellas bonus semanales para hábitos dominados (+1 por hábito dominado por día completado)
+* **Categoría "Tecnología para el Bien"**:
+  - Nuevos hábitos para enseñar uso positivo de la tecnología
+  - Categoría disponible para todos los perfiles
+* **Feedback Dopaminérgico Mejorado**:
+  - Celebración especial cuando se domina un hábito
+  - Sistema de recompensas visuales y sonoras mejorado
+* **Migración de Base de Datos**:
+  - Nueva migración Alembic `c929fa34db3d_add_habit_mastery_columns.py` para agregar columnas de mastery
+  - Migración automática al iniciar la aplicación
 
 ### Fixed
-*   **Error del Panel Admin (Production)**: Corregido el problema que impedía acceder al admin en producción - ahora admin.html se compila correctamente a dist/ y se sirve desde ahí
-*   **Error del Panel Admin (Local)**: Corregido el problema que impedía acceder al admin - ahora carga correctamente desde admin.js
-*   **Error de Columna en Producción**: Corregido error `column habit_templates.consecutive_days does not exist` en PostgreSQL
+
+* **Error del Panel Admin (Production)**: Corregido el problema que impedía acceder al admin en producción - ahora admin.html se compila correctamente a dist/ y se sirve desde ahí
+* **Error del Panel Admin (Local)**: Corregido el problema que impedía acceder al admin - ahora carga correctamente desde admin.js
+* **Error de Columna en Producción**: Corregido error `column habit_templates.consecutive_days does not exist` en PostgreSQL
 
 ### Changed
-*   `backend/models.py` - Agregados campos: `consecutive_days`, `is_mastered`, `mastered_at` a HabitTemplate
-*   `backend/schemas.py` - Actualizado HabitTemplateOut con nuevos campos de mastery
-*   `backend/crud.py` - Nueva lógica de mastery y cálculo de estrellas bonus
-*   `backend/api/habits.py` - Endpoint retorna información de hábitos recién dominados
-*   `frontend/app.js` - Nuevas funciones: showMasteryCelebration, launchGoldenConfetti, playMasterySound
-*   `frontend/admin.html` - Corregido src del script de admin
-*   `frontend/styles.css` - Nuevos estilos para mastery
+
+* `backend/models.py` - Agregados campos: `consecutive_days`, `is_mastered`, `mastered_at` a HabitTemplate
+* `backend/schemas.py` - Actualizado HabitTemplateOut con nuevos campos de mastery
+* `backend/crud.py` - Nueva lógica de mastery y cálculo de estrellas bonus
+* `backend/api/habits.py` - Endpoint retorna información de hábitos recién dominados
+* `frontend/app.js` - Nuevas funciones: showMasteryCelebration, launchGoldenConfetti, playMasterySound
+* `frontend/admin.html` - Corregido src del script de admin
+* `frontend/styles.css` - Nuevos estilos para mastery
 
 ## [3.0.0] - 2026-03-15
 ### Added
