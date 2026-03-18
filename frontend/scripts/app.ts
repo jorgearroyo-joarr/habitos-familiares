@@ -968,7 +968,8 @@ async function updateNextRewardTier(slug: string, currentPct: number, currentEar
         
         // Example: Base = 10$, Multiplier = 1.5 => Target = 15$
         const streakBonus = state[slug]?.streak >= (appSettings.streak_days || 7) ? (appSettings.streak_bonus_pct || 1.5) : 1.0;
-        const projectedEarn = profile.base_weekly_reward * nextTier.multiplier * streakBonus;
+        const baseReward = Number(profile.base_weekly_reward) || 0;
+        const projectedEarn = baseReward * nextTier.multiplier * streakBonus;
         
         labelEl.textContent = `🎯 Siguiente meta: ${nextTier.emoji || '🎁'} ${nextTier.label || ''}`;
         amtEl.textContent = `${currency}${projectedEarn.toFixed(0)}`;

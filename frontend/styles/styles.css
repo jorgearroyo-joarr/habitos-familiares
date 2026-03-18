@@ -546,9 +546,10 @@ body::before {
 }
 
 .habit-stars.star-pending {
-  opacity: 0;
-  transform: scale(0.5);
+  opacity: 0 !important;
+  transform: scale(0.5) !important;
   pointer-events: none;
+  visibility: hidden;
 }
 
 /* Base earned styles and specific themes */

@@ -2,14 +2,12 @@ services:
   - type: web
     name: habitosfam
     env: python
-    buildCommand: |
-      cd frontend && npm install && npm run build
-      cd .. && pip install -r requirements.txt
+    buildCommand: ./build.sh
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: sqlite:///./habitosfam.db
+        sync: false # Debes configurarlo en el Dashboard apuntando a Supabase (PostgreSQL)
       - key: ADMIN_PIN
-        value: 1234
+        sync: false # Configurar contraseña segura en Dashboard
       - key: DEBUG
         value: "False"
