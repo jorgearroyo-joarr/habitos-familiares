@@ -1,4 +1,4 @@
-<!-- Version: 3.3.3 | Updated: 2026-03-17 | Author: AI-assisted -->
+<!-- Version: 3.4.0 | Updated: 2026-03-18 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -8,7 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [3.3.4] - 2026-03-17
+## [3.4.0] - 2026-03-18
+
+### Added
+
+- **Gráficos Comparativos (Admin)**: Nueva pestaña en el panel de admin para comparar el desempeño entre perfiles. Incluye:
+  - Gráfico de barras: Tasa de completado (%) últimos 7 días por perfil
+  - Gráfico de barras: Racha actual de cada perfil
+  - Gráfico de barras: Total de recompensas semanales ganadas
+  - Gráfico de líneas: Progreso semanal últimas 4 semanas
+- `GET /api/admin/comparison/charts` — Endpoint para obtener datos comparativos de todos los perfiles
 
 ### Added
 

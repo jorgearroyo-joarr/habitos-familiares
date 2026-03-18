@@ -692,3 +692,145 @@ export async function bulkCloseWeek() {
         console.error(e);
     }
 }
+
+// ── Comparison Charts ──────────────────────────────
+
+let comparisonData: any = null;
+let comparisonChart: any = null;
+
+export async function loadComparisonData() {
+    if (comparisonData) return comparisonData;
+    try {
+        comparisonData = await apiCall('/api/admin/comparison/charts');
+        return comparisonData;
+    } catch (e) {
+        console.error('Error loading comparison data', e);
+        return null;
+    }
+}
+
+declare const Chart: any;
+
+export async function showComparisonChart(type: string) {
+    // Update button states
+    ['completion', 'streak', 'rewards', 'progress'].forEach(t => {
+        const btn = document.getElementById(`btn-${t}`);
+        if (btn) btn.classList.toggle('active', t === type);
+    });
+
+    const data = await loadComparisonData();
+    if (!data || !data.profiles || data.profiles.length === 0) {
+        alert('No hay datos disponibles');
+        return;
+    }
+
+    const ctx = document.getElementById('comparison-chart') as HTMLCanvasElement;
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (comparisonChart) {
+        comparisonChart.destroy();
+    }
+
+    const labels = data.profiles.map((p: any) => `${p.avatar} ${p.name}`);
+    let chartData: any;
+    let chartType: string = 'bar';
+    let chartOptions: any = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        }
+    };
+
+    // Theme colors
+    const colors = data.profiles.map((p: any) => {
+        if (p.theme === 'alana-theme') return 'rgba(236, 72, 153, 0.8)'; // pink
+        if (p.theme === 'sofia-theme') return 'rgba(59, 130, 246, 0.8)'; // blue
+        return 'rgba(139, 92, 246, 0.8)'; // purple default
+    });
+
+    switch (type) {
+        case 'completion':
+            chartData = {
+                labels,
+                datasets: [{
+                    label: '% Completado (7 días)',
+                    data: data.profiles.map((p: any) => p.completion_rate_7d),
+                    backgroundColor: colors,
+                    borderRadius: 8
+                }]
+            };
+            chartOptions.scales = {
+                y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } }
+            };
+            break;
+
+        case 'streak':
+            chartData = {
+                labels,
+                datasets: [{
+                    label: 'Días de racha',
+                    data: data.profiles.map((p: any) => p.current_streak),
+                    backgroundColor: colors,
+                    borderRadius: 8
+                }]
+            };
+            chartOptions.scales = {
+                y: { beginAtZero: true, title: { display: true, text: 'Días' } }
+            };
+            break;
+
+        case 'rewards':
+            chartData = {
+                labels,
+                datasets: [{
+                    label: 'Recompensas ($)',
+                    data: data.profiles.map((p: any) => p.total_rewards_earned),
+                    backgroundColor: colors,
+                    borderRadius: 8
+                }]
+            };
+            chartOptions.scales = {
+                y: { beginAtZero: true, title: { display: true, text: appSettings.currency_symbol || '$' } }
+            };
+            break;
+
+        case 'progress':
+            chartType = 'line';
+            const weeks = ['Semana -3', 'Semana -2', 'Semana -1', 'Esta semana'];
+            chartData = {
+                labels: weeks,
+                datasets: data.profiles.map((p: any, idx: number) => ({
+                    label: p.name,
+                    data: p.weekly_progress,
+                    borderColor: colors[idx],
+                    backgroundColor: colors[idx].replace('0.8', '0.2'),
+                    fill: true,
+                    tension: 0.3
+                }))
+            };
+            chartOptions.scales = {
+                y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } }
+            };
+            chartOptions.plugins = {
+                legend: { display: true, position: 'bottom' }
+            };
+            break;
+    }
+
+    comparisonChart = new Chart(ctx, {
+        type: chartType,
+        data: chartData,
+        options: chartOptions
+    });
+}
+
+// Auto-load comparison data when section is shown
+const originalShowSection = (window as any).showSection;
+(window as any).showSection = function(section: string) {
+    if (originalShowSection) originalShowSection(section);
+    if (section === 'comparison') {
+        showComparisonChart('completion');
+    }
+};

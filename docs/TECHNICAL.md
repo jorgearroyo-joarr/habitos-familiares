@@ -1,4 +1,4 @@
-<!-- Version: 3.3.0 | Updated: 2026-03-18 | Author: AI-assisted -->
+<!-- Version: 3.4.0 | Updated: 2026-03-18 | Author: AI-assisted -->
 # HábitosFam – Documentación Técnica
 
 > Stack: FastAPI · SQLAlchemy · SQLite (PostgreSQL/MySQL ready) · HTML5/CSS3 · TypeScript v5
@@ -127,6 +127,7 @@ Para detalles completos (columnas, tipos, defaults, foreign keys), consulta [DAT
 | POST | `/api/admin/profiles/{slug}/close-month` | Cerrar mes específico |
 | POST | `/api/admin/profiles/{slug}/close-current-month` | Cerrar mes actual |
 | POST | `/api/admin/profiles/{slug}/habits/reorder` | Reordenar hábitos (drag & drop) |
+| GET | `/api/admin/comparison/charts` | **Gráficos comparativos entre perfiles** |
 
 📖 **Documentación interactiva**: `http://localhost:8765/api/docs`
 

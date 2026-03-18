@@ -1306,3 +1306,84 @@ def seed_default_data(db: Session):
             )
 
     db.commit()
+
+
+# ── Comparison Charts (Admin) ─────────────────────────────────────
+
+
+def get_comparison_charts(db: Session):
+    """Get comparative stats for all profiles (for admin charts)."""
+    from datetime import timedelta
+
+    profiles = get_all_profiles(db)
+    today = date.today()
+    result = []
+
+    for profile in profiles:
+        if not profile.is_active:
+            continue
+
+        # Completion rate last 7 days
+        week_start = today - timedelta(days=6)
+        week_logs = (
+            db.query(models.DayLog)
+            .filter(
+                models.DayLog.profile_id == profile.id,
+                models.DayLog.date >= week_start.isoformat(),
+                models.DayLog.date <= today.isoformat(),
+            )
+            .all()
+        )
+        valid_logs = [log for log in week_logs if log.total > 0]
+        completion_rate_7d = (
+            sum(log.pct for log in valid_logs) / len(valid_logs) * 100
+            if valid_logs
+            else 0.0
+        )
+
+        # Current streak
+        current_streak = calculate_current_streak(db, profile)
+
+        # Total rewards earned (weekly)
+        total_rewards = (
+            db.query(func.sum(models.WeekReward.amount))
+            .filter(models.WeekReward.profile_id == profile.id)
+            .scalar()
+        ) or 0.0
+
+        # Weekly progress (last 4 weeks)
+        weekly_progress = []
+        for weeks_ago in range(4):
+            week_start_i = today - timedelta(days=7 * (weeks_ago + 1))
+            week_end = week_start_i + timedelta(days=6)
+            w_logs = (
+                db.query(models.DayLog)
+                .filter(
+                    models.DayLog.profile_id == profile.id,
+                    models.DayLog.date >= week_start_i.isoformat(),
+                    models.DayLog.date <= week_end.isoformat(),
+                )
+                .all()
+            )
+            w_valid = [log for log in w_logs if log.total > 0]
+            w_pct = (
+                sum(log.pct for log in w_valid) / len(w_valid) * 100 if w_valid else 0.0
+            )
+            weekly_progress.append(round(w_pct, 1))
+
+        weekly_progress.reverse()  # Oldest to newest
+
+        result.append(
+            schemas.ProfileComparisonStats(
+                slug=str(profile.slug),
+                name=profile.name,
+                avatar=profile.avatar,
+                theme=profile.theme,
+                completion_rate_7d=round(completion_rate_7d, 1),
+                current_streak=current_streak,
+                total_rewards_earned=round(float(total_rewards), 2),
+                weekly_progress=weekly_progress,
+            )
+        )
+
+    return schemas.ComparisonChartsOut(profiles=result, period="last_4_weeks")

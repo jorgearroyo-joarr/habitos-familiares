@@ -376,3 +376,29 @@ class PurchaseIn(BaseModel):
     item_type: str  # 'theme' | 'avatar'
     item_id: str
     cost: float
+
+
+class PurchaseOut(BaseModel):
+    success: bool
+    new_balance: float
+    item_id: str
+    message: str
+
+
+# ── Comparison Charts (Admin) ─────────────────────────────────────
+
+
+class ProfileComparisonStats(BaseModel):
+    slug: str
+    name: str
+    avatar: str
+    theme: str
+    completion_rate_7d: float  # Porcentaje últimos 7 días
+    current_streak: int  # Racha actual
+    total_rewards_earned: float  # Total recompensas semanales
+    weekly_progress: list[float]  # Últimas 4 semanas (%)
+
+
+class ComparisonChartsOut(BaseModel):
+    profiles: list[ProfileComparisonStats]
+    period: str  # 'last_4_weeks'

@@ -644,26 +644,26 @@ function createHabitCard(habit: Habit, hState: any, slug: string) {
         </div>`;
     }).join('');
 
-    // @ts-ignore
-    const activeMicro = microHabits.filter(m => m.is_active !== false);
-    const doneCount = activeMicro.filter((_, i) => hState.miniTasks[i]).length;
-    const allMicroDone = activeMicro.length > 0 && doneCount === activeMicro.length;
+     // @ts-ignore
+     const activeMicro = microHabits.filter(m => m.is_active !== false);
+     const doneCount = activeMicro.filter((_, i) => hState.miniTasks[i]).length;
+     const allMicroDone = activeMicro.length > 0 && doneCount === activeMicro.length;
 
-    const starEarned = hState.done || allMicroDone;
+     const starEarned = hState.done || allMicroDone;
 
-    card.innerHTML = `
-    <div class="habit-icon">${habit.icon}</div>
-    <div class="habit-content">
-        <div class="habit-name">${habit.name}</div>
-        <div class="habit-desc">${habit.description || ''}</div>
-        <div class="habit-stars ${starEarned ? 'star-earned' : 'star-pending'}">${starEarned ? '⭐' : '☆'} ${habit.stars} estrella${habit.stars !== 1 ? 's' : ''} · ${doneCount}/${activeMicro.length} micro-hábitos</div>
-        <div class="mini-tasks">${miniTasksHTML}</div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div class="habit-check" id="check-${slug}-${habit.key}" onclick="toggleHabit('${slug}', '${habit.key}')">${hState.done ? '✓' : ''}</div>
-        <div class="habit-expand" onclick="toggleExpand('${slug}','${habit.key}',event)">▼</div>
-    </div>
-    `;
+     card.innerHTML = `
+     <div class="habit-icon">${habit.icon}</div>
+     <div class="habit-content">
+         <div class="habit-name">${habit.name}</div>
+         <div class="habit-desc">${habit.description || ''}</div>
+         <div class="habit-stars ${starEarned ? 'star-earned' : 'star-pending'}">${starEarned ? '⭐ 1 estrella' : ''}</div>
+         <div class="mini-tasks">${miniTasksHTML}</div>
+     </div>
+     <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+           <div class="habit-check" id="check-${slug}-${habit.key}" onclick="toggleHabit('${slug}', '${habit.key}')">${hState.done ? '✓' : ''}</div>
+           <div class="habit-expand" onclick="toggleExpand('${slug}','${habit.key}',event)">▼</div>
+     </div>
+     `;
 
     return card;
 }
@@ -690,19 +690,19 @@ export function updateHabitCardUI(slug: string, habitKey: string) {
     const allMicroDone = micros.length > 0 && doneCount === micros.length;
     const starEarned = hState.done || allMicroDone;
 
-    if (starEarned) {
-        card.classList.add('completed');
-        check.textContent = '✓';
-        starsEl.classList.add('star-earned');
-        starsEl.classList.remove('star-pending');
-        starsEl.innerHTML = starsEl.innerHTML.replace('☆', '⭐');
-    } else {
-        card.classList.remove('completed');
-        check.textContent = '';
-        starsEl.classList.remove('star-earned');
-        starsEl.classList.add('star-pending');
-        starsEl.innerHTML = starsEl.innerHTML.replace('⭐', '☆');
-    }
+     if (starEarned) {
+         card.classList.add('completed');
+         check.textContent = '✓';
+         starsEl.classList.add('star-earned');
+         starsEl.classList.remove('star-pending');
+         starsEl.textContent = '⭐ 1 estrella';
+     } else {
+         card.classList.remove('completed');
+         check.textContent = '';
+         starsEl.classList.remove('star-earned');
+         starsEl.classList.add('star-pending');
+         starsEl.textContent = '';
+     }
 
     if (starsEl.innerHTML.includes('micro-hábitos')) {
         starsEl.innerHTML = starsEl.innerHTML.replace(

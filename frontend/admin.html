@@ -12,6 +12,7 @@
     <link rel="manifest" href="/public/manifest.json?v=3" />
     <link rel="icon" type="image/svg+xml" href="/public/favicon.svg?v=3" />
     <link rel="stylesheet" href="/styles/admin.css?v=3" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -54,6 +55,7 @@
             <button class="admin-tab" onclick="showSection('rewards')">💰 Recompensas</button>
             <button class="admin-tab" onclick="showSection('settings')">⚙️ Ajustes</button>
             <button class="admin-tab" onclick="showSection('data')">📊 Datos</button>
+            <button class="admin-tab" onclick="showSection('comparison')">📈 Comparación</button>
         </nav>
 
         <main class="admin-main">
@@ -237,6 +239,23 @@
                 </div>
                 <h3>🏥 Estado del Sistema</h3>
                 <div id="health-info" class="health-card"></div>
+            </section>
+
+            <!-- ===== COMPARISON ===== -->
+            <section id="sec-comparison" class="admin-section">
+                <h2>📈 Comparación de Perfiles</h2>
+                <p class="text-muted" style="margin-bottom: 20px;">Compara el desempeño entre todos los perfiles de la familia.</p>
+                
+                <div class="chart-tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn-outline active" onclick="showComparisonChart('completion')" id="btn-completion">Tasa de Completado</button>
+                    <button class="btn-outline" onclick="showComparisonChart('streak')" id="btn-streak">Racha Actual</button>
+                    <button class="btn-outline" onclick="showComparisonChart('rewards')" id="btn-rewards">Recompensas</button>
+                    <button class="btn-outline" onclick="showComparisonChart('progress')" id="btn-progress">Progreso Semanal</button>
+                </div>
+                
+                <div class="chart-container" style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                    <canvas id="comparison-chart" height="300"></canvas>
+                </div>
             </section>
 
         </main>

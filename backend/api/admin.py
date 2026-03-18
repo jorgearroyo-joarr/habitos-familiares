@@ -449,3 +449,14 @@ def close_current_month(
     today = date.today()
     month_key = f"{today.year}-{today.month:02d}"
     return crud.close_month(db, profile, month_key)
+
+
+# ── Comparison Charts ────────────────────────────────────────────
+
+
+@router.get("/comparison/charts", response_model=schemas.ComparisonChartsOut)
+def get_comparison_charts(
+    db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)
+):
+    """Get comparative performance charts across all profiles."""
+    return crud.get_comparison_charts(db)

@@ -18,15 +18,15 @@
 
 ---
 
-## 🚧 v3.4.0 – Reportes y Comparativas (Próximamente)
+## 🚧 v3.4.0 – Reportes y Comparativas (En desarrollo)
 
 **Para Usuarios:**
 - [ ] Sistema de desbloqueo de items coleccionables raros.
 - [ ] Logros compartidos (Hitos familiares).
 
 **Para Administradores:**
+- [x] Gráficos comparativos de desempeño entre perfiles.
 - [ ] Reportes automáticos por Email (Resumen semanal).
-- [ ] Gráficos comparativos de desempeño entre perfiles.
 
 ---
 
