@@ -179,6 +179,34 @@ update-docs         → for keeping docs in sync
 
 ---
 
+## 🌿 Branching & GitHub Flow (Zero-Privilege Repo)
+
+To enforce quality and security, direct commits to `main` are strictly forbidden. All agents and developers must use the standard GitHub Flow.
+
+### 1. Branch Naming Convention
+Branches must follow the `type/scope` or `type/description` pattern:
+- `feature/add-dopamine-stars`
+- `fix/admin-pin-bypass`
+- `docs/update-technical-guide`
+- `chore/update-dependencies`
+
+### 2. Pull Request (PR) Requirements
+- All changes must be submitted via PR against the `main` branch.
+- PR titles must follow Conventional Commits (e.g., `feat(ui): add dopamine stars`).
+- PR descriptions must include what changed, why, and how it was tested.
+- If the PR resolves a specific issue, it must include a closing keyword (e.g., `Closes #12`).
+
+### 3. Review & Quality Gates
+Before a PR can be merged, it **must** pass the following:
+1. `ruff check backend/` (Zero Python linting errors)
+2. `mypy backend/ --ignore-missing-imports` (Zero typing issues)
+3. `pytest backend/ -v` (All tests pass)
+4. For backend changes: `security-review` skill executed and passed.
+
+**Rule for Agents:** When asked to implement a feature, always start by checking out a new branch. Never attempt to push directly to `main`.
+
+---
+
 ## 🗄️ Database Migration Guide
 
 > **Important**: Full database schema documentation is available in [DATABASE.md](../docs/DATABASE.md).

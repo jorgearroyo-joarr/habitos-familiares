@@ -729,6 +729,7 @@ export function toggleHabit(slug: string, habitKey: string) {
         saveState();
         updateHabitCardUI(slug, habitKey);
         updateDailyProgress(slug);
+        updateProfileHeader(slug);
         updateCompleteButton(slug);
         const errAlert = document.getElementById('global-error');
         if (errAlert) {
@@ -740,6 +741,7 @@ export function toggleHabit(slug: string, habitKey: string) {
     
     updateHabitCardUI(slug, habitKey);
     updateDailyProgress(slug);
+    updateProfileHeader(slug);
     updateCompleteButton(slug);
 }
 
@@ -790,11 +792,13 @@ export function toggleMiniTask(slug: string, habitKey: string, idx: number, e: M
         saveState();
         updateHabitCardUI(slug, habitKey);
         updateDailyProgress(slug);
+        updateProfileHeader(slug);
         updateCompleteButton(slug);
     });
     
     updateHabitCardUI(slug, habitKey);
     updateDailyProgress(slug);
+    updateProfileHeader(slug);
     updateCompleteButton(slug);
 }
 
@@ -878,7 +882,18 @@ function updateProfileHeader(slug: string) {
 
     const weekData = computeWeekStats(slug);
     const starsEl = document.getElementById(`${slug}-week-stars`);
-    if (starsEl) starsEl.textContent = weekData.stars.toString();
+    if (starsEl) {
+        const oldStars = parseInt(starsEl.textContent || '0', 10);
+        const newStars = weekData.stars;
+        starsEl.textContent = newStars.toString();
+        
+        // Dopamine bounce animation when stars increase
+        if (newStars > oldStars) {
+            starsEl.classList.remove('star-burst-anim');
+            void starsEl.offsetWidth; // Trigger reflow to restart animation
+            starsEl.classList.add('star-burst-anim');
+        }
+    }
 
     const earned = computeWeeklyEarned(slug, weekData.pct);
     const currency = appSettings.currency || '$';
@@ -1053,12 +1068,41 @@ function computeWeekStats(slug: string) {
     const weekDates = getWeekDates();
     const log = state[slug]?.dayLog || {};
     let stars = 0, totalPossible = 0;
+    const todayKey = today();
+    
     weekDates.forEach(d => {
-        const entry = log[d];
-        if (entry) {
-            stars += entry.completedCount;
-            if (entry.completedCount === entry.total) stars++;
-            totalPossible += entry.total;
+        if (d === todayKey) {
+            // Always include today's live completion stats for dopamine counters
+            // By bypassing log[d], we ensure toggling habits today updates the counter even if the day is already marked 'done'
+            const todayHabits = state[slug]?.habits[todayKey] || {};
+            // @ts-ignore
+            const config = (habitsConfig[slug] || []).filter(h => h.is_active !== false);
+            const totalToday = config.length;
+            
+            // Recompute exact done habits based on stars logic
+            let doneToday = 0;
+            config.forEach(habit => {
+                const hState = todayHabits[habit.key] || { done: false, miniTasks: {} };
+                const microHabits = habit.micro_habits || [];
+                // @ts-ignore
+                const activeMicro = microHabits.filter(m => m.is_active !== false);
+                const doneCount = activeMicro.filter((_, i) => hState.miniTasks[i]).length;
+                const allMicroDone = activeMicro.length > 0 && doneCount === activeMicro.length;
+                if (hState.done || allMicroDone) {
+                    doneToday++;
+                }
+            });
+
+            stars += doneToday;
+            if (totalToday > 0 && doneToday === totalToday) stars++;
+            totalPossible += totalToday;
+        } else {
+            const entry = log[d];
+            if (entry) {
+                stars += entry.completedCount;
+                if (entry.completedCount === entry.total) stars++;
+                totalPossible += entry.total;
+            }
         }
     });
     const pct = totalPossible > 0 ? stars / (totalPossible + 7) : 0;
@@ -1070,13 +1114,16 @@ function computeWeeklyEarned(slug: string, weekPct: number) {
     if (!profile) return 0;
     const streak = state[slug]?.streak || 0;
     const streakBonus = streak >= (appSettings.streak_days || 7) ? (appSettings.streak_bonus_pct || 1.5) : 1.0;
+    
+    // Ensure baseReward is a valid number to prevent NaN
+    const baseReward = Number(profile.base_weekly_reward) || 0;
 
     const thresholds = [
         { min: 0.90, mult: 2.0 }, { min: 0.75, mult: 1.5 },
         { min: 0.60, mult: 1.0 }, { min: 0.40, mult: 0.5 }, { min: 0, mult: 0 }
     ];
     for (const t of thresholds) {
-        if (weekPct >= t.min) return profile.base_weekly_reward * t.mult * streakBonus;
+        if (weekPct >= t.min) return baseReward * t.mult * streakBonus;
     }
     return 0;
 }
