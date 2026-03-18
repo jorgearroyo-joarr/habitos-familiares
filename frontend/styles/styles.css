@@ -40,6 +40,20 @@
   padding: 0;
 }
 
+/* ── Accessibility: Focus Visible ── */
+:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+.tab-btn:focus-visible,
+.habit-check:focus-visible,
+.pin-input:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 2px;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -70,6 +84,60 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 999;
+}
+
+/* ── Skeleton Loader ── */
+.skeleton-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  z-index: 50;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-loader.hidden { display: none; }
+
+.skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.skeleton-logo { width: 180px; height: 50px; border-radius: 12px; }
+.skeleton-btn { width: 44px; height: 44px; border-radius: 50%; }
+
+.skeleton-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.skeleton-tab { flex: 1; height: 48px; border-radius: 50px; }
+
+.skeleton-content { display: flex; flex-direction: column; gap: 12px; }
+
+.skeleton-card {
+  height: 120px;
+  border-radius: 20px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 /* ── Header ── */

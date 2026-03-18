@@ -41,6 +41,8 @@ function setLoading(isLoading: boolean) {
     const container = document.getElementById('app-container');
     if (!container) return;
     
+    const skeleton = document.getElementById('skeleton-loader');
+    
     let spinner = document.getElementById('global-spinner');
     if (isLoading && !spinner) {
         spinner = document.createElement('div');
@@ -48,9 +50,19 @@ function setLoading(isLoading: boolean) {
         spinner.innerHTML = '<div class="spinner"></div>';
         spinner.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;';
         container.appendChild(spinner);
+        
+        // Show skeleton loader on first load
+        if (skeleton && loadingCount === 1) {
+            skeleton.classList.remove('hidden');
+        }
     } else if (!isLoading && spinner && loadingCount <= 0) {
         spinner.remove();
         loadingCount = 0;
+        
+        // Hide skeleton loader when done
+        if (skeleton) {
+            skeleton.classList.add('hidden');
+        }
     }
 }
 
