@@ -539,18 +539,28 @@ body::before {
 
 .habit-stars {
   font-size: 0.75rem;
-  color: #fbbf24;
   font-weight: 700;
   margin-top: 4px;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
 .habit-stars.star-pending {
-  color: #64748b;
+  color: #64748b; /* Muted gray for pending stars */
 }
 
-.habit-stars.star-earned {
+/* Base earned styles and specific themes */
+.habit-stars.star-earned,
+.sofia-theme .habit-stars.star-earned,
+.alana-theme .habit-stars.star-earned {
   color: #fbbf24;
   text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+  animation: star-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes star-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 .habit-check {

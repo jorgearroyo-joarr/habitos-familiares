@@ -19,6 +19,13 @@ import * as App from './app.ts';
 (window as any).toggleExpand = App.toggleExpand;
 (window as any).launchConfetti = App.launchConfetti;
 
+// ── Phase 4: Virtual Store ──
+(window as any).openStore = App.openStore;
+(window as any).closeStore = App.closeStore;
+(window as any).switchStoreTab = App.switchStoreTab;
+(window as any).purchaseItem = App.purchaseItem;
+(window as any).applyStoreItem = App.applyStoreItem;
+
 // Initialize when DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     App.setupPinInputs();
