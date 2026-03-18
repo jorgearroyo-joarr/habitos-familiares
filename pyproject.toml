@@ -1,6 +1,6 @@
 [project]
 name = "habitosfam"
-version = "2.3.0"
+version = "3.3.2"
 description = "Sistema dinámico de seguimiento de hábitos familiares con FastAPI y Vanilla JS"
 authors = [
     { name = "Jorge Arroyo Rivera", email = "familia.arroyo.rivera@outlook.com" }

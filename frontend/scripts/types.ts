@@ -46,6 +46,9 @@ export interface Profile {
     monthly_reward_desc: string;
     is_admin?: boolean;
     is_active?: boolean;
+    balance?: number;
+    unlocked_themes_json?: string;
+    unlocked_avatars_json?: string;
     habits?: Habit[];
     reward_tiers?: RewardTier[];
 }

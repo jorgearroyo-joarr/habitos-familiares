@@ -1,4 +1,4 @@
-<!-- Version: 3.1.1 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 3.3.1 | Updated: 2026-03-17 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -10,7 +10,69 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [3.1.1] - 2026-03-15
+## [3.3.2] - 2026-03-17
+### Added
+- **Mejoras de UX**: 
+    - **Spinner de carga**: Indicador visual mientras se cargan datos del API.
+    - **Toast de errores**: Mensajes de error visibles cuando falla una llamada al servidor.
+
+### Fixed
+- `backend/api/habits.py`: Corregido tipo de `created_at` (ahora usa `datetime.now()` en lugar de string).
+- `backend/api/habits.py`: Corregido uso de `DayLogWithMasteryOut` para el atributo `newly_mastered`.
+- `backend/crud.py`: Agregadas conversiones explícitas de tipos (`str()`, `float()`, `bool()`) en funciones que retornan schemas Pydantic para evitar errores de serialización.
+- `backend/api/admin.py`: Corregida línea muy larga en función `admin_login`.
+
+## [3.3.1] - 2026-03-17
+### Added
+- **Documentación de Base de Datos**: Nuevo documento `docs/DATABASE.md` con el esquema completo de las 9 tablas, columnas, índices, relaciones y diagramas ER.
+- **Migración Inicial de Alembic**: Nueva migración `v330_initial.py` que crea el esquema completo v3.3 desde cero. Permite a sistemas en producción que nunca usaron Alembic migrar fácilmente.
+
+### Changed
+- `backend/main.py`: Eliminada la función de migración manual `run_migrations()`. Ahora usa Alembic oficialmente para todas las migraciones de esquema.
+- `docs/TECHNICAL.md`: Actualizada la sección de migraciones con referencia a `DATABASE.md` e instrucciones de Alembic.
+- `docs/AGENTS.md`: Actualizada la sección de Database Migration Guide y lista de directorios para incluir `DATABASE.md`.
+
+### Fixed
+- Corregida la cadena de dependencias de migraciones de Alembic (`v330_initial` -> `c929fa34db3d` -> `1231155072f6`).
+
+## [3.3.0] - 2026-03-18
+### Added
+- **Mejoras UX Fase 4 (Economía Virtual)**:
+    - **Tienda (Store)**: Nueva interfaz modal para comprar Avatars y Temas usando los ahorros acumulados.
+    - **Sistema de Saldo (Balance)**: Los perfiles ahora acumulan dinero real ganado por sus hábitos en una cuenta virtual.
+    - **Personalización**: Capacidad de desbloquear y aplicar temas visuales y avatares emoji permanentes.
+    - **Endpoint de Compra**: API robusta para validación de saldo y transacciones de artículos virtuales.
+- `backend/migrations/versions/1231155072f6_add_economy_fields_to_profile.py`: Nueva migración para soporte de economía.
+
+### Changed
+- `backend/models.py`: Se agregaron los campos `balance`, `unlocked_themes` y `unlocked_avatars` al modelo `Profile`.
+- `backend/crud.py`: La función `mark_reward_paid` ahora suma automáticamente el monto al balance del perfil.
+- `frontend/scripts/data.ts`: Definición del catálogo inicial de la tienda (`STORE_ITEMS`).
+- `frontend/scripts/app.ts`: Lógica completa de renderizado de tienda y gestión de compras.
+
+## [3.2.0] - 2026-03-17
+### Added
+- **Mejoras UX Fase 1 (Quick Wins)**:
+    - **Retroalimentación Háptica**: Vibración al marcar hábitos y micro-hábitos (Mobile only).
+    - **Vista Previa de Perfil**: Botón "Ver" en el panel Admin para entrar como usuario sin cerrar sesión.
+- **Mejoras UX Fase 2 (Progreso Visual)**:
+    - **Barra de Siguiente Nivel**: Visualización dinámica en el Hero del perfil que muestra cuánto falta para el siguiente Tier (Plata/Oro/Diamante).
+    - **Auditoría Visual de Logs**: El panel de datos ahora muestra la hora del último cambio para cada registro diario.
+- **Mejoras UX Fase 3 (Eficiencia Admin)**:
+    - **Cierre de Semana Masivo**: Nuevo botón "Cerrar Semana para Todos" en Admin y Nueva lógica en `app.ts` para ejecutar el cierre familiar con un clic.
+    - **Analíticas de Puntos de Fricción**: Widget en el Dashboard de Admin que identifica automáticamente los 5 hábitos con menor tasa de cumplimiento.
+    - **Resumen al pasar el ratón (Hover)**: En la tabla de logs, ahora se puede ver el detalle de qué hábitos se completaron o faltaron al pasar el cursor sobre la fila.
+
+### Changed
+- **Optimistic UI**: Reforzada la actualización inmediata del DOM antes de sincronizar con el API para eliminar latencia percibida.
+- `backend/schemas.py`: Agregado campo `updated_at` a `DayLogOut`.
+- `backend/crud.py`: Implementada función `bulk_close_week` para procesamiento familiar.
+- `backend/api/admin.py`: Nuevo endpoint `POST /api/admin/bulk-close-week`.
+- `frontend/scripts/admin.ts`: Rediseño de la sección de Logs con Tooltips (resumen de hábitos) y visualización de Friction Points.
+- `frontend/scripts/app.ts`: Actualización de la función `resetWeek` para usar el nuevo endpoint familiar.
+
+### Fixed
+- Corregida inconsistencia en el cálculo de la fecha de inicio de semana (`getThisMonday`).
 ### Fixed
 - **Lógica de Estrellas y Micro-hábitos (CRÍTICO)**:
     - Corregido acoplamiento erróneo: ahora el estado de micro-hábitos alimenta el progreso del hábito principal, no al revés

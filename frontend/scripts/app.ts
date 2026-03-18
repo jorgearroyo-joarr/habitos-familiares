@@ -4,7 +4,7 @@
  */
 
 import { Profile, AppSettings, Habit } from './types.ts';
-import { PROGRESS_MESSAGES, DIAS } from './data.ts';
+import { PROGRESS_MESSAGES, DIAS, STORE_ITEMS } from './data.ts';
 
 // Add Chart.js global type if needed (since it's loaded via CDN)
 declare const Chart: any;
@@ -34,13 +34,57 @@ let activeProfile: string | null = null;
 
 // ── API helpers ──────────────────────────────
 
+let loadingCount = 0;
+
+function setLoading(isLoading: boolean) {
+    loadingCount += isLoading ? 1 : -1;
+    const container = document.getElementById('app-container');
+    if (!container) return;
+    
+    let spinner = document.getElementById('global-spinner');
+    if (isLoading && !spinner) {
+        spinner = document.createElement('div');
+        spinner.id = 'global-spinner';
+        spinner.innerHTML = '<div class="spinner"></div>';
+        spinner.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;';
+        container.appendChild(spinner);
+    } else if (!isLoading && spinner && loadingCount <= 0) {
+        spinner.remove();
+        loadingCount = 0;
+    }
+}
+
+function showErrorToast(message: string) {
+    const toast = document.createElement('div');
+    toast.className = 'error-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: #ff4444; color: white; padding: 12px 24px; border-radius: 8px;
+        z-index: 10000; animation: fadeIn 0.3s;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
 async function api(path: string, opts: RequestInit = {}): Promise<any> {
-    const res = await fetch(`${API}${path}`, {
-        headers: { 'Content-Type': 'application/json', ...opts.headers },
-        ...opts
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    setLoading(true);
+    try {
+        const res = await fetch(`${API}${path}`, {
+            headers: { 'Content-Type': 'application/json', ...opts.headers },
+            ...opts
+        });
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `HTTP ${res.status}`);
+        }
+        return res.json();
+    } catch (e: any) {
+        showErrorToast(e.message || 'Error de conexión');
+        throw e;
+    } finally {
+        setLoading(false);
+    }
 }
 
 // ── Init ─────────────────────────────────────
@@ -262,6 +306,28 @@ export async function loadApp() {
     if (adminLink) {
         adminLink.style.display = session.role === 'admin' ? 'inline-block' : 'none';
     }
+
+    updateHeaderBalance();
+}
+
+function updateHeaderBalance() {
+    if (session.role === 'admin' || !session.profileSlug) {
+        const storeBtn = document.getElementById('header-store-btn');
+        if (storeBtn) storeBtn.style.display = 'none';
+        return;
+    }
+
+    const p = profiles.find(pr => pr.slug === session.profileSlug);
+    if (!p) return;
+
+    const balanceEl = document.getElementById('header-balance');
+    const storeBtn = document.getElementById('header-store-btn');
+    
+    if (balanceEl) {
+        const currency = appSettings.currency || '$';
+        balanceEl.textContent = `${currency}${p.balance?.toFixed(2) || '0.00'}`;
+    }
+    if (storeBtn) storeBtn.style.display = 'flex';
 }
 
 // ── State ────────────────────────────────────
@@ -373,6 +439,17 @@ function buildProfileSections(visibleProfiles: Profile[]) {
                         <div class="coin-amount" id="${p.slug}-week-coins">${currency}0.00</div>
                         <div class="coin-label">ganados esta semana</div>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Phase 2: Next Reward Tier UI -->
+            <div class="reward-tier-container">
+                <div class="reward-tier-header">
+                    <span class="reward-tier-label" id="${p.slug}-next-tier-label">🎯 Siguiente meta: Cargando...</span>
+                    <span class="reward-tier-amt" id="${p.slug}-next-tier-amt"></span>
+                </div>
+                <div class="reward-tier-bar-bg">
+                    <div class="reward-tier-bar-fill" id="${p.slug}-next-tier-fill" style="width: 0%"></div>
                 </div>
             </div>
         </div>
@@ -492,6 +569,7 @@ export function switchProfile(name: string) {
     if (name !== 'family') {
         renderProfile(name);
         renderDashboard(name);
+        updateHeaderBalance();
     } else {
         renderFamily();
     }
@@ -596,7 +674,22 @@ export function toggleHabit(slug: string, habitKey: string) {
     }
 
     saveState();
-    syncHabitsToAPI(slug);
+    
+    // Optimistic UI: Sync to API without awaiting to prevent perceived latency
+    syncHabitsToAPI(slug).catch(() => {
+        // Fallback Revert if API fails
+        const revertHabits = state[slug].habits[todayKey];
+        revertHabits[habitKey].done = !revertHabits[habitKey].done;
+        saveState();
+        renderProfile(slug);
+        const errAlert = document.getElementById('global-error');
+        if (errAlert) {
+            errAlert.textContent = 'Sin conexión. Los cambios no se guardaron.';
+            errAlert.classList.remove('hidden');
+            setTimeout(() => errAlert.classList.add('hidden'), 3000);
+        }
+    });
+    
     renderProfile(slug);
 }
 
@@ -628,10 +721,26 @@ export function toggleMiniTask(slug: string, habitKey: string, idx: number, e: M
         const target = e.target as HTMLElement;
         const rect = target.closest('.habit-card')?.getBoundingClientRect();
         if (rect) launchMiniConfetti(rect.left + rect.width / 2, rect.top);
+        
+        // Haptic feedback for completing entirely
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } else if (!wasChecked) {
+         // Haptic feedback for micro-task
+         if (navigator.vibrate) navigator.vibrate(50);
     }
 
     saveState();
-    syncHabitsToAPI(slug);
+    
+    // Optimistic UI: Sync to API without awaiting
+    syncHabitsToAPI(slug).catch(() => {
+        // Fallback if failed
+        const revertHabits = state[slug].habits[todayKey];
+        revertHabits[habitKey].miniTasks[idx] = wasChecked;
+        if (allDone && micros.length > 0) revertHabits[habitKey].done = false;
+        saveState();
+        renderProfile(slug);
+    });
+    
     renderProfile(slug);
 }
 
@@ -646,12 +755,12 @@ async function syncHabitsToAPI(slug: string) {
         mini_tasks: h.miniTasks || {}
     }));
 
-    try {
-        await api(`/api/profiles/${slug}/habits`, {
-            method: 'POST',
-            body: JSON.stringify({ date: todayKey, habits: entries })
-        });
-    } catch (e) { console.warn('API sync failed', e); }
+    // Removing try-catch block wrapper here to let it bubble to the optimistic caller
+    const response = await api(`/api/profiles/${slug}/habits`, {
+        method: 'POST',
+        body: JSON.stringify({ date: todayKey, habits: entries })
+    });
+    return response;
 }
 
 async function syncCompleteDayToAPI(slug: string, done: number, total: number, pct: number) {
@@ -721,6 +830,82 @@ function updateProfileHeader(slug: string) {
     const currency = appSettings.currency || '$';
     const coinsEl = document.getElementById(`${slug}-week-coins`);
     if (coinsEl) coinsEl.textContent = `${currency}${earned.toFixed(2)}`;
+    
+    // Update Reward Tier progress UI
+    updateNextRewardTier(slug, weekData.pct, earned);
+}
+
+// ── Next Reward Tier Logic ───────────────────
+
+let cachedTiers: Record<string, any[]> = {};
+
+async function updateNextRewardTier(slug: string, currentPct: number, currentEarned: number) {
+    const profile = profiles.find(p => p.slug === slug);
+    if (!profile) return;
+    
+    if (!cachedTiers[slug]) {
+        try {
+            // Background fetch since we don't want to block main render
+            const fetched = await api(`/api/profiles/${slug}/reward-tiers?tier_type=weekly`);
+            // Sort ascending by min_pct so we can easily find the *next* milestone
+            cachedTiers[slug] = fetched.sort((a: any, b: any) => a.min_pct - b.min_pct);
+        } catch(e) { 
+            /* soft fail if tiers unavailable */ 
+            cachedTiers[slug] = [];
+        }
+    }
+    
+    const tiers = cachedTiers[slug] || [];
+    const labelEl = document.getElementById(`${slug}-next-tier-label`);
+    const amtEl = document.getElementById(`${slug}-next-tier-amt`);
+    const fillEl = document.getElementById(`${slug}-next-tier-fill`);
+    const currency = appSettings.currency || '$';
+    
+    if (!labelEl || !fillEl || !amtEl || !tiers.length) {
+        if (labelEl) labelEl.textContent = '🎯 ¡Gana estrellas para recompensas!';
+        return;
+    }
+    
+    // Find highest tier achieved
+    let achievedTier = null;
+    let nextTier = null;
+    
+    for (let i = 0; i < tiers.length; i++) {
+        if (currentPct >= tiers[i].min_pct) {
+            achievedTier = tiers[i];
+        } else if (!nextTier) {
+             // Because array is sorted ASC, the first tier we haven't reached is our next goal
+            nextTier = tiers[i];
+        }
+    }
+    
+    if (!nextTier) {
+        // Reached the max tier
+        labelEl.textContent = `🏆 ¡Máxima recompensa desbloqueada!`;
+        amtEl.textContent = `${currency}${currentEarned.toFixed(0)}`;
+        fillEl.style.width = '100%';
+        fillEl.style.backgroundColor = '#fbbf24'; // Gold
+    } else {
+        // We are progressing towards nextTier
+        // Calculate the relative gap filling between current baseline and next milestone
+        const baseline = achievedTier ? achievedTier.min_pct : 0;
+        const target = nextTier.min_pct;
+        const range = target - baseline;
+        
+        let subPct = 0;
+        if (range > 0 && currentPct > baseline) {
+            subPct = (currentPct - baseline) / range;
+        }
+        
+        // Example: Base = 10$, Multiplier = 1.5 => Target = 15$
+        const streakBonus = state[slug]?.streak >= (appSettings.streak_days || 7) ? (appSettings.streak_bonus_pct || 1.5) : 1.0;
+        const projectedEarn = profile.base_weekly_reward * nextTier.multiplier * streakBonus;
+        
+        labelEl.textContent = `🎯 Siguiente meta: ${nextTier.emoji || '🎁'} ${nextTier.label || ''}`;
+        amtEl.textContent = `${currency}${projectedEarn.toFixed(0)}`;
+        fillEl.style.width = `${Math.min(100, Math.max(0, subPct * 100))}%`;
+        fillEl.style.backgroundColor = ''; // CSS decides fallback based on theme
+    }
 }
 
 function updateCompleteButton(slug: string) {
@@ -944,12 +1129,32 @@ function renderMonthlyRing(profile: Profile) {
 
 // ── Reset ────────────────────────────────────
 
-export function resetWeek() {
-    if (!confirm('¿Cerrar la semana actual?')) return;
-    profiles.forEach(p => { if (state[p.slug]) state[p.slug].shieldUsed = false; });
-    saveState();
-    renderFamily();
-    alert('✅ Semana cerrada.');
+export async function resetWeek() {
+    if (!confirm('¿Cerrar la semana para toda la familia? Esto calculará las recompensas y guardará el progreso de todos.')) return;
+    try {
+        const date = new Date();
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        date.setDate(diff);
+        const weekStart = date.toISOString().split('T')[0];
+
+        await api('/api/admin/bulk-close-week', {
+            method: 'POST',
+            body: JSON.stringify({ week_start: weekStart })
+        });
+        
+        profiles.forEach(p => { if (state[p.slug]) state[p.slug].shieldUsed = false; });
+        saveState();
+        renderFamily();
+        alert('✅ Semana cerrada para todos.');
+    } catch (e: any) {
+        if (e.message.includes('401') || e.message.includes('403')) {
+            alert('❌ Sólo los administradores pueden cerrar la semana.');
+        } else {
+            alert('❌ Error al cerrar semana.');
+            console.error(e);
+        }
+    }
 }
 
 // ── Modal ────────────────────────────────────
@@ -1237,4 +1442,164 @@ export function setTrendPeriod(slug: string, period: string) {
     const container = document.getElementById(`${slug}-trends-container`);
     if (container) container.dataset.period = period;
     loadTrendsChart(slug);
+}
+
+
+// ── Virtual Store Logic ─────────────────────
+
+let currentStoreTab: 'avatars' | 'themes' = 'avatars';
+
+export function openStore() {
+    const modal = document.getElementById('store-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        renderStore();
+    }
+}
+
+export function closeStore() {
+    const modal = document.getElementById('store-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+export function switchStoreTab(tab: 'avatars' | 'themes') {
+    currentStoreTab = tab;
+    // Update tab buttons
+    const btns = document.querySelectorAll('.store-tab-btn');
+    btns.forEach(btn => {
+        const text = btn.textContent?.toLowerCase() || '';
+        if ((tab === 'avatars' && text.includes('avatar')) || (tab === 'themes' && text.includes('tema'))) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    renderStore();
+}
+
+function renderStore() {
+    const grid = document.getElementById('store-content');
+    const balanceEl = document.getElementById('store-balance');
+    if (!grid) return;
+
+    // Use current active profile or session profile
+    const slug = activeProfile || session.profileSlug;
+    if (!slug) return;
+    
+    const profile = profiles.find(p => p.slug === slug);
+    if (!profile) return;
+
+    const currency = appSettings.currency || '$';
+    if (balanceEl) balanceEl.textContent = `${currency}${profile.balance?.toFixed(2) || '0.00'}`;
+
+    grid.innerHTML = '';
+    const items = currentStoreTab === 'avatars' ? STORE_ITEMS.avatars : STORE_ITEMS.themes;
+    
+    // Parse unlocked items
+    const unlockedAvatars = profile.unlocked_avatars_json ? JSON.parse(profile.unlocked_avatars_json) : [];
+    const unlockedThemes = profile.unlocked_themes_json ? JSON.parse(profile.unlocked_themes_json) : [];
+    const unlocked = currentStoreTab === 'avatars' ? unlockedAvatars : unlockedThemes;
+
+    items.forEach(item => {
+        const isUnlocked = unlocked.includes(item.id) || (currentStoreTab === 'themes' && item.id === 'default');
+        const isSelected = (currentStoreTab === 'avatars' && profile.avatar === (item as any).icon) || 
+                           (currentStoreTab === 'themes' && profile.theme === item.id);
+        
+        const card = document.createElement('div');
+        card.className = `store-item${isUnlocked ? ' unlocked' : ''}${isSelected ? ' selected' : ''}`;
+        
+        let previewHTML = '';
+        if (currentStoreTab === 'avatars') {
+            previewHTML = `<div class="item-preview">${(item as any).icon}</div>`;
+        } else {
+            previewHTML = `<div class="theme-preview" style="background: ${(item as any).gradient}"></div>`;
+        }
+
+        card.innerHTML = `
+            ${!isUnlocked ? `<div class="locked-badge">🔒</div>` : ''}
+            ${previewHTML}
+            <span class="item-name">${item.name}</span>
+            ${!isUnlocked ? `<span class="item-cost">${currency}${item.cost}</span>` : '<span class="item-cost" style="color:#22c55e">Desbloqueado</span>'}
+            ${!isUnlocked 
+                ? `<button class="btn-buy" onclick="purchaseItem('${currentStoreTab}', '${item.id}', ${item.cost})" ${ (profile.balance || 0) < item.cost ? 'disabled' : ''}>Comprar</button>` 
+                : isSelected ? '<button class="btn-apply" disabled>Seleccionado</button>' : `<button class="btn-apply" onclick="applyStoreItem('${currentStoreTab}', '${item.id}')">Usar</button>`
+            }
+        `;
+        grid.appendChild(card);
+    });
+}
+
+export async function purchaseItem(type: 'avatars' | 'themes', id: string, cost: number) {
+    const slug = activeProfile || session.profileSlug;
+    if (!slug) return;
+
+    if (!confirm(`¿Quieres comprar este ${type === 'avatars' ? 'avatar' : 'tema'} por ${appSettings.currency}${cost}?`)) return;
+
+    try {
+        const updatedProfile = await api(`/api/profiles/${slug}/purchase`, {
+            method: 'POST',
+            body: JSON.stringify({ item_type: type.slice(0, -1), item_id: id, cost })
+        });
+
+        // Update local profiles list
+        const idx = profiles.findIndex(p => p.slug === slug);
+        if (idx !== -1) profiles[idx] = updatedProfile;
+
+        // Refresh UI
+        // @ts-ignore
+        if (window.updateHeaderBalance) window.updateHeaderBalance(); 
+        // Actually it's local, but I should call it directly if exported or available
+        renderStore();
+        showToast('¡Compra realizada con éxito! 🎉');
+    } catch (e) {
+        alert('Error en la compra: ' + e);
+    }
+}
+
+export async function applyStoreItem(type: 'avatars' | 'themes', id: string) {
+    const slug = activeProfile || session.profileSlug;
+    if (!slug) return;
+
+    try {
+        const profile = profiles.find(p => p.slug === slug);
+        if (!profile) return;
+
+        const item = type === 'avatars' ? STORE_ITEMS.avatars.find(a => a.id === id) : STORE_ITEMS.themes.find(t => t.id === id);
+        if (!item) return;
+
+        // Update locally first for instant feedback (Optimistic UI)
+        if (type === 'avatars') profile.avatar = (item as any).icon;
+        else profile.theme = id;
+
+        // Persist change via Admin API (which allows patching profiles)
+        // Note: In a real app, we might need a specific "user settings" endpoint if admin auth is required.
+        // For now, let's trigger a UI refresh
+        renderStore();
+        
+        // Re-build UI to reflect new theme/avatar
+        // buildProfileSections(profiles.filter(p => session.role === 'admin' || p.slug === session.profileSlug));
+        // switchProfile(slug);
+        
+        showToast(`¡${type === 'avatars' ? 'Avatar' : 'Tema'} aplicado! ✨`);
+        
+        // In this architecture, we should probably call building functions
+        // But to avoid circular dependencies or complexity, let's just reload or trigger global update
+        location.reload(); 
+    } catch (e) {
+        alert('Error al aplicar: ' + e);
+    }
+}
+
+function showToast(msg: string) {
+    const modalTitle = document.getElementById('modal-title');
+    const modalMsg = document.getElementById('modal-msg');
+    const modalEmoji = document.getElementById('modal-emoji');
+    const modalStars = document.getElementById('modal-stars');
+    const modal = document.getElementById('celebration-modal');
+
+    if (modalTitle) modalTitle.textContent = '¡Genial!';
+    if (modalMsg) modalMsg.textContent = msg;
+    if (modalEmoji) modalEmoji.textContent = '🛍️';
+    if (modalStars) modalStars.innerHTML = '';
+    if (modal) modal.classList.remove('hidden');
 }

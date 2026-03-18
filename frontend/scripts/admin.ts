@@ -137,6 +137,7 @@ function loadProfiles() {
         </div>
         <div class="card-actions">
             <button class="btn-sm" onclick="editProfile('${p.slug}')">✏️ Editar</button>
+            <button class="btn-sm" onclick="impersonateProfile('${p.slug}')">👀 Ver App</button>
             ${p.is_active !== false ? `<button class="btn-sm danger" onclick="deactivateProfile('${p.slug}')">🗑️</button>` : ''}
         </div>
     </div>
@@ -220,6 +221,15 @@ export async function deactivateProfile(slug: string) {
         populateProfileSelects();
         loadProfiles();
     } catch (e: any) { alert('Error: ' + e.message); }
+}
+
+// ── IMPERSONATION ────────────────────────────
+
+export function impersonateProfile(slug: string) {
+    // Save to local storage to bypass PIN on the frontend
+    localStorage.setItem('hf_user', slug);
+    // Redirect to main app
+    window.location.href = '/';
 }
 
 // ── HABITS ────────────────────────────────────
@@ -542,21 +552,83 @@ export async function loadLogs() {
     const slug = (document.getElementById('data-profile-select') as HTMLSelectElement).value;
     if (!slug) return;
     try {
-        const logs = await apiCall(`/api/admin/profiles/${slug}/logs`);
+        const [logs, habits] = await Promise.all([
+            apiCall(`/api/admin/profiles/${slug}/logs`),
+            apiCall(`/api/admin/profiles/${slug}/habits`)
+        ]);
+        
+        const habitMap: Record<string, string> = {};
+        habits.forEach((h: any) => { habitMap[h.habit_key] = h.name; });
+
         const list = document.getElementById('logs-list');
         if (!list) return;
         if (!logs.length) { list.innerHTML = '<p class="empty-msg">Sin registros.</p>'; return; }
-        list.innerHTML = `<table class="data-table"><thead><tr><th>Fecha</th><th>Done</th><th>Total</th><th>%</th><th>✅</th><th></th></tr></thead><tbody>
-        ${logs.map((l: any) => `<tr>
-            <td>${l.date}</td><td>${l.completed_count}</td><td>${l.total}</td>
-            <td>${Math.round(l.pct * 100)}%</td><td>${l.day_done ? '✅' : '—'}</td>
-            <td><button class="btn-xs danger" onclick="deleteLog('${slug}', '${l.date}')">🗑️</button></td>
-        </tr>`).join('')}
+        list.innerHTML = `<table class="data-table"><thead><tr><th>Fecha</th><th>Done</th><th>Total</th><th>%</th><th>✅</th><th>Última Actividad</th><th></th></tr></thead><tbody>
+        ${logs.map((l: any) => {
+            const timeStr = l.updated_at ? new Date(l.updated_at).toLocaleString('es-MX', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+            
+            const completedNames: string[] = [];
+            const missedNames: string[] = [];
+            
+            if (l.habit_entries && l.habit_entries.length > 0) {
+                l.habit_entries.forEach((entry: any) => {
+                    const name = habitMap[entry.habit_id] || entry.habit_id;
+                    if (entry.done) {
+                        completedNames.push('✅ ' + name);
+                    } else {
+                        missedNames.push('❌ ' + name);
+                    }
+                });
+            }
+            
+            let tooltip = '';
+            if (completedNames.length || missedNames.length) {
+                tooltip = [...completedNames, ...missedNames].join('&#10;');
+            }
+
+            return `<tr title="${tooltip}" style="cursor: help;">
+                <td>${l.date}</td><td>${l.completed_count}</td><td>${l.total}</td>
+                <td>${Math.round(l.pct * 100)}%</td><td>${l.day_done ? '✅' : '—'}</td>
+                <td style="font-size: 0.75rem; color: var(--text-muted);">${timeStr}</td>
+                <td><button class="btn-xs danger" onclick="deleteLog('${slug}', '${l.date}')">🗑️</button></td>
+            </tr>`;
+        }).join('')}
         </tbody></table>`;
     } catch (e) { console.error(e); }
 
     const exportLink = document.getElementById('export-csv-link') as HTMLAnchorElement;
     if (exportLink) exportLink.href = `${API}/api/admin/export/csv`;
+
+    loadFrictionPoints(slug);
+}
+
+async function loadFrictionPoints(slug: string) {
+    try {
+        const dashboard = await apiCall(`/api/profiles/${slug}/dashboard`);
+        const list = document.getElementById('friction-points-list');
+        if (!list) return;
+
+        const habits = dashboard.habits || [];
+        const frictionHabits = habits
+            .filter((h: any) => h.total_days > 0)
+            .sort((a: any, b: any) => a.pct - b.pct)
+            .slice(0, 5); // Top 5 worst habits
+        
+        if (!frictionHabits.length) {
+            list.innerHTML = '<p class="empty-msg">No hay datos suficientes.</p>';
+            return;
+        }
+
+        list.innerHTML = `<div class="friction-grid" style="display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-bottom: 20px;">
+        ${frictionHabits.map((h: any) => `
+            <div class="admin-card" style="padding: 10px; border-left: 4px solid ${h.pct < 0.5 ? 'var(--danger-color)' : 'var(--warning-color)'}">
+                <div style="font-weight: bold; margin-bottom: 5px;">${h.habit_name}</div>
+                <div class="text-sm">Completado: ${Math.round(h.pct * 100)}%</div>
+                <div class="text-xs text-muted">${h.completed_days} de ${h.total_days} días</div>
+            </div>
+        `).join('')}
+        </div>`;
+    } catch (e) { console.error('Error loading friction points', e); }
 }
 
 export async function deleteLog(slug: string, dateStr: string) {
@@ -596,4 +668,27 @@ export async function resetAllData() {
 
 export function closeModalWindow(id: string) {
     document.getElementById(id)?.classList.add('hidden');
+}
+
+
+export async function bulkCloseWeek() {
+    if (!confirm('¿Seguro que deseas evaluar y CERRAR la semana para TODOS los perfiles activos? Esto generará recompensas para quienes cumplan las metas.')) return;
+    
+    try {
+        const date = new Date();
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        date.setDate(diff);
+        const weekStart = date.toISOString().split('T')[0];
+
+        await apiCall('/api/admin/bulk-close-week', {
+            method: 'POST',
+            body: JSON.stringify({ week_start: weekStart })
+        });
+        alert('✅ Semana cerrada exitosamente para todos.');
+        loadLogs();
+    } catch (e: any) {
+        alert('❌ Error al cerrar semana.');
+        console.error(e);
+    }
 }

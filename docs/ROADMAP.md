@@ -1,34 +1,32 @@
 # 🗺️ HábitosFam – Roadmap Estratégico
 
-> **Versión actual:** v2.2.0 · **Última actualización:** Marzo 2026
+> **Versión actual:** v3.3.0 · **Última actualización:** 18 Marzo 2026
 
 ---
 
-## ✅ Estado actual (v2.2.0)
+## ✅ Estado actual (v3.2.0)
 
-- [x] App web gamificada (HTML/CSS/JS) con diseño premium dark-mode
-- [x] Gestión Dinámica de Perfiles (CRUD ilimitado)
-- [x] Hábitos y Micro-hábitos configurables por perfil
-- [x] Panel Administrativo con PIN y niveles de recompensa personalizables
-- [x] Sistema de App Settings (Nombre de App, Moneda, Bonus)
-- [x] Dashboard Familiar Unificado (vista Supervisor)
-- [x] Dopamine UI: Micro-sparkles y confetti burst
-- [x] Backend FastAPI robusto con SQLite persistente
-- [x] Documentación completa (Técnica, Guía, Agent, Roadmap, IMPROVEMENTS)
-- [x] Reset de datos integral desde el panel admin
-- [x] Localización completa de la API al español (es-MX)
-- [x] **[v2.1.1]** Efectos de Micro-Dopamina (confeti + brillos locales)
-- [x] **[v2.1.1]** Efectos de Sonido (playCheckSound, playMicroCheckSound)
-- [x] **[v2.1.1]** Notificaciones de recordatorio (Web Notifications API)
-- [x] **[v2.1.1]** Modo oscuro/claro (toggle con persistencia)
-- [x] **[v2.1.1]** Backups Automáticos (antes de operaciones críticas)
-- [x] **[v2.1.1]** Favicon y PWA manifest (instalable en móvil)
-- [x] **[v2.2.0]** Gráficos de Tendencia (Chart.js con periodo semanal/mensual/anual)
-- [x] **[v2.2.0]** Catálogo de Plantillas (Higiene, Estudio, Deporte por edad)
-- [x] **[v2.2.0]** Editor Drag & Drop (reordenar hábitos en admin)
-- [x] **[v2.2.0]** Cierre de Mes Automático (consolidación de recompensas)
-- [x] **[v2.2.0]** Migraciones Alembic (versionado formal del esquema)
-- [x] **[v2.2.0]** Pruebas Unitarias (test_api.py con pytest)
+- [x] App web gamificada (HTML/CSS/JS) con diseño premium glassmorphism
+- [x] Gestión Dinámica de Perfiles y Micro-hábitos
+- [x] Panel Administrativo con Auditoría Visual y Analytics
+- [x] **[v3.2.0] Mejoras UX**: Retroalimentación Háptica, Optimistic UI, Modo Preview.
+- [x] **[v3.2.0] Analytics**: Detección de Puntos de Fricción (Bottom 5).
+- [x] **[v3.2.0] Bulk Ops**: Cierre de semana familiar masivo.
+- [x] **[v3.2.0] Auditoría**: Timestamps de guardado y Resumen Hover en logs.
+- [x] **[v3.3.0] Economía Virtual**: Tienda de Avatars y Temas personalizada.
+- [x] **[v3.3.0] Sistema de Saldo**: Acumulación automática de ahorros por hábitos completados.
+
+---
+
+## 🚧 v3.4.0 – Reportes y Comparativas (Próximamente)
+
+**Para Usuarios:**
+- [ ] Sistema de desbloqueo de items coleccionables raros.
+- [ ] Logros compartidos (Hitos familiares).
+
+**Para Administradores:**
+- [ ] Reportes automáticos por Email (Resumen semanal).
+- [ ] Gráficos comparativos de desempeño entre perfiles.
 
 ---
 

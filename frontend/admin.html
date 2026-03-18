@@ -192,6 +192,7 @@
                 <div class="section-actions">
                     <button class="btn-outline" onclick="addTierRow()">➕ Agregar nivel</button>
                     <button class="btn-primary" onclick="saveTiers()">💾 Guardar cambios</button>
+                    <button class="btn-warning" onclick="bulkCloseWeek()" style="margin-left:auto;">💸 Cerrar Semana para Todos</button>
                 </div>
             </section>
 
@@ -224,6 +225,10 @@
                     <label>Perfil</label>
                     <select id="data-profile-select" onchange="loadLogs()"></select>
                 </div>
+                <h3>🛑 Puntos de Fricción</h3>
+                <p class="text-xs text-muted" style="margin-top: -10px; margin-bottom: 10px;">Hábitos con menor porcentaje de completitud.</p>
+                <div id="friction-points-list" class="friction-points-container"></div>
+
                 <h3>📅 Registros diarios</h3>
                 <div id="logs-list" class="logs-table"></div>
                 <div class="section-actions">

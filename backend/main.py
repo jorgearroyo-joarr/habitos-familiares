@@ -16,7 +16,6 @@ from fastapi.staticfiles import StaticFiles
 
 from .api import admin, habits
 from .config import settings
-from .database import create_tables, engine
 
 # ── Logging ────────────────────────────────────────────────────
 logging.basicConfig(
@@ -26,89 +25,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def run_migrations():
-    """Run automatic migrations for new columns."""
-    from sqlalchemy import text
-
-    try:
-        with engine.connect() as conn:
-            # Check if consecutive_days column exists
-            result = conn.execute(
-                text("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'habit_templates' AND column_name = 'consecutive_days'
-            """)
-            )
-            if result.fetchone() is None:
-                logger.info("📊 Adding consecutive_days column to habit_templates...")
-                conn.execute(
-                    text(
-                        "ALTER TABLE habit_templates ADD COLUMN consecutive_days INTEGER DEFAULT 0"
-                    )
-                )
-                conn.commit()
-                logger.info("✅ Added consecutive_days column")
-
-            # Check if is_mastered column exists
-            result = conn.execute(
-                text("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'habit_templates' AND column_name = 'is_mastered'
-            """)
-            )
-            if result.fetchone() is None:
-                logger.info("📊 Adding is_mastered column to habit_templates...")
-                conn.execute(
-                    text(
-                        "ALTER TABLE habit_templates ADD COLUMN is_mastered BOOLEAN DEFAULT FALSE"
-                    )
-                )
-                conn.commit()
-                logger.info("✅ Added is_mastered column")
-
-            # Check if mastered_at column exists
-            result = conn.execute(
-                text("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'habit_templates' AND column_name = 'mastered_at'
-            """)
-            )
-            if result.fetchone() is None:
-                logger.info("📊 Adding mastered_at column to habit_templates...")
-                conn.execute(
-                    text("ALTER TABLE habit_templates ADD COLUMN mastered_at TIMESTAMP")
-                )
-                conn.commit()
-                logger.info("✅ Added mastered_at column")
-
-    except Exception as e:
-        logger.warning(f"Migration check warning: {e}")
-
-
 # ── App lifecycle ──────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: create tables and seed default data."""
+    """Startup: run migrations and seed default data."""
     print("DEBUG: Entering lifespan", flush=True)
-    logger.info("🚀 HábitosFam v3 starting up (%s)", settings.db_engine_type)
+    logger.info("🚀 HábitosFam v3.3.2 starting up (%s)", settings.db_engine_type)
     sys.stdout.flush()
 
+    # Run Alembic migrations FIRST (handles both new and existing DBs)
     try:
-        logger.info("📡 Initializing database tables...")
-        sys.stdout.flush()
-        create_tables()
-        logger.info("✅ Database tables created/verified")
-        sys.stdout.flush()
-    except Exception as e:
-        logger.error("❌ FAILED to create tables: %s", e, exc_info=True)
-        sys.stdout.flush()
-        raise
+        from alembic.config import Config
+        from alembic import command
 
-    # Run migrations for new columns
-    run_migrations()
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        logger.info("✅ Alembic migrations completed")
+    except Exception as e:
+        logger.warning(f"Migration check warning: {e}")
 
     # Auto-seed default profiles, habits, micro-habits, reward tiers
     from . import crud

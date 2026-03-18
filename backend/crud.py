@@ -631,13 +631,58 @@ def close_week(db: Session, profile: models.Profile, week_start: str):
     return reward
 
 
+def bulk_close_week(db: Session, week_start: str):
+    """Closes the specified week for all active profiles."""
+    profiles = get_profiles(db)
+    results = []
+    for p in profiles:
+        reward = close_week(db, p, week_start)
+        results.append(reward)
+    return results
+
+
 def mark_reward_paid(db: Session, reward: models.WeekReward, notes: str | None):
     reward.reward_paid = True
     if notes:
         reward.notes = notes
+
+    # Update profile balance
+    reward.profile.balance += reward.earned_amount or 0
+
     db.commit()
     db.refresh(reward)
     return reward
+
+
+# ── Virtual Economy ───────────────────────────────────────────
+
+
+def purchase_item(
+    db: Session, profile: models.Profile, item_type: str, item_id: str, cost: float
+):
+    """
+    Handles a purchase in the virtual store.
+    item_type: 'theme' | 'avatar'
+    """
+    if profile.balance < cost:
+        return None  # Insufficient funds
+
+    profile.balance -= cost
+
+    if item_type == "theme":
+        themes = json.loads(profile.unlocked_themes or '["default"]')
+        if item_id not in themes:
+            themes.append(item_id)
+            profile.unlocked_themes = json.dumps(themes)
+    elif item_type == "avatar":
+        avatars = json.loads(profile.unlocked_avatars or "[]")
+        if item_id not in avatars:
+            avatars.append(item_id)
+            profile.unlocked_avatars = json.dumps(avatars)
+
+    db.commit()
+    db.refresh(profile)
+    return profile
 
 
 # ── Month stats ───────────────────────────────────────────────
@@ -735,8 +780,8 @@ def get_profile_dashboard(db: Session, profile: models.Profile):
     )
 
     return schemas.ProfileDashboardOut(
-        profile_slug=profile.slug,
-        profile_name=profile.name,
+        profile_slug=str(profile.slug),
+        profile_name=str(profile.name),
         overall_pct=overall_pct,
         total_active_days=len(all_logs),
         habits=habit_stats,
@@ -868,12 +913,12 @@ def get_trend_data(db: Session, profile: models.Profile, period: str):
     improvement = ((avg_pct - prev_avg) / prev_avg * 100) if prev_avg > 0 else None
 
     return schemas.TrendResponse(
-        profile_slug=profile.slug,
+        profile_slug=str(profile.slug),
         period=period,
         data=data,
         average_pct=avg_pct,
         best_day=best.date if best else None,
-        improvement=improvement,
+        improvement=float(improvement) if improvement is not None else None,
     )
 
 
@@ -915,14 +960,16 @@ def close_month(db: Session, profile: models.Profile, month_key: str):
 
     if existing:
         return schemas.MonthCloseResult(
-            profile_slug=profile.slug,
+            profile_slug=str(profile.slug),
             month_key=month_key,
             days_completed=days_completed,
             total_days=total_days,
-            pct=pct,
-            reward_unlocked=existing.reward_unlocked,
-            reward_amount=profile.weekly_reward_full if existing.reward_unlocked else 0,
-            reward_desc=existing.reward_desc or profile.monthly_reward_desc or "",
+            pct=float(pct),
+            reward_unlocked=bool(existing.reward_unlocked),
+            reward_amount=float(profile.weekly_reward_full)
+            if existing.reward_unlocked
+            else 0.0,
+            reward_desc=str(existing.reward_desc or profile.monthly_reward_desc or ""),
             already_closed=True,
         )
 
@@ -942,14 +989,14 @@ def close_month(db: Session, profile: models.Profile, month_key: str):
     db.refresh(month_reward)
 
     return schemas.MonthCloseResult(
-        profile_slug=profile.slug,
+        profile_slug=str(profile.slug),
         month_key=month_key,
         days_completed=days_completed,
         total_days=total_days,
-        pct=pct,
+        pct=float(pct),
         reward_unlocked=reward_unlocked,
-        reward_amount=profile.weekly_reward_full if reward_unlocked else 0,
-        reward_desc=profile.monthly_reward_desc or "",
+        reward_amount=float(profile.weekly_reward_full) if reward_unlocked else 0.0,
+        reward_desc=str(profile.monthly_reward_desc or ""),
         already_closed=False,
     )
 

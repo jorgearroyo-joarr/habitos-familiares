@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -97,6 +97,28 @@ def get_reward_tiers(
 # ── Today's log ───────────────────────────────────────────────
 
 
+@router.post("/profiles/{slug}/purchase", response_model=schemas.ProfileOut)
+def purchase_item(
+    slug: str, payload: schemas.PurchaseIn, db: Session = Depends(get_db)
+) -> Any:
+    """Purchase a theme or avatar from the virtual store."""
+    profile = crud.get_profile_by_slug(db, slug)
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Perfil '{slug}' no encontrado")
+
+    updated = crud.purchase_item(
+        db, profile, payload.item_type, payload.item_id, payload.cost
+    )
+    if not updated:
+        raise HTTPException(
+            status_code=400, detail="Saldo insuficiente o error en la compra"
+        )
+
+    out = schemas.ProfileOut.model_validate(updated)
+    out.has_pin = updated.pin_hash is not None
+    return out
+
+
 @router.get("/profiles/{slug}/today", response_model=schemas.DayLogOut)
 def get_today_log(slug: str, db: Session = Depends(get_db)) -> Any:
     profile = crud.get_profile_by_slug(db, slug)
@@ -117,7 +139,7 @@ def get_today_log(slug: str, db: Session = Depends(get_db)) -> Any:
             day_done=False,
             bonus_star=False,
             habit_entries=[],
-            created_at=date.today().strftime("%Y-%m-%dT%H:%M:%S"),
+            created_at=datetime.now(),
         )
     return log
 
@@ -141,7 +163,7 @@ def save_habits(
     log, newly_mastered = crud.upsert_day_log(
         db, profile.id, payload.date, payload.habits
     )
-    result = schemas.DayLogOut.model_validate(log)
+    result = DayLogWithMasteryOut.model_validate(log)
     result.newly_mastered = newly_mastered
     return result
 

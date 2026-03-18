@@ -13,6 +13,7 @@ from sqlalchemy import engine_from_config, pool
 
 from backend.config import settings
 from backend.database import Base
+from backend import models  # Ensure models are loaded
 
 config = context.config
 if config.config_file_name is not None:
@@ -32,6 +33,7 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        render_as_batch=True,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -46,7 +48,11 @@ def run_migrations_online():
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection, 
+            target_metadata=target_metadata,
+            render_as_batch=True,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

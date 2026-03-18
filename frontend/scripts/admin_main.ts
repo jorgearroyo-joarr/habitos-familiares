@@ -31,6 +31,7 @@ import * as Admin from './admin.ts';
 (window as any).deleteLog = Admin.deleteLog;
 (window as any).resetAllData = Admin.resetAllData;
 (window as any).closeModalWindow = Admin.closeModalWindow;
+(window as any).bulkCloseWeek = Admin.bulkCloseWeek;
 
 // Initialize when DOM ready
 document.addEventListener('DOMContentLoaded', () => {

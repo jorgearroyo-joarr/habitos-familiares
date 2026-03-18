@@ -40,7 +40,9 @@ def _verify_admin(
 
 
 @router.post("/login")
-def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)) -> dict[str, Any]:
+def admin_login(
+    payload: schemas.PinLoginIn, db: Session = Depends(get_db)
+) -> dict[str, Any]:
     result = crud.verify_pin(db, payload.pin)
     if not result or result["role"] != "admin":
         raise HTTPException(status_code=401, detail="PIN de administrador inválido")
@@ -52,7 +54,9 @@ def admin_login(payload: schemas.PinLoginIn, db: Session = Depends(get_db)) -> d
 
 
 @router.get("/settings", response_model=schemas.AppSettingsOut)
-def get_settings(db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)) -> Any:
+def get_settings(
+    db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)
+) -> Any:
     return crud.get_app_settings(db)
 
 
@@ -69,7 +73,9 @@ def update_settings(
 
 
 @router.get("/profiles", response_model=list[schemas.ProfileOut])
-def admin_list_profiles(db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)) -> list[schemas.ProfileOut]:
+def admin_list_profiles(
+    db: Session = Depends(get_db), auth: bool = Depends(_verify_admin)
+) -> list[schemas.ProfileOut]:
     profiles = crud.get_all_profiles(db)
     result = []
     for p in profiles:
@@ -320,6 +326,19 @@ def admin_close_week(
     if not profile:
         raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return crud.close_week(db, profile, week_start)
+
+
+class BulkCloseWeekIn(BaseModel):
+    week_start: str
+
+
+@router.post("/bulk-close-week", response_model=list[schemas.WeekRewardOut])
+def admin_bulk_close_week(
+    payload: BulkCloseWeekIn,
+    db: Session = Depends(get_db),
+    auth=Depends(_verify_admin),
+):
+    return crud.bulk_close_week(db, payload.week_start)
 
 
 @router.post("/rewards/{reward_id}/mark-paid", response_model=schemas.WeekRewardOut)

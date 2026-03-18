@@ -51,3 +51,23 @@ export const DEFAULT_SETTINGS = {
   streak_days: 7,
   streak_bonus_pct: 1.5
 };
+
+// Virtual Store Items
+export const STORE_ITEMS = {
+  avatars: [
+    { id: 'panda', name: 'Panda 🐼', cost: 10, icon: '🐼' },
+    { id: 'tiger', name: 'Tigre 🐯', cost: 15, icon: '🐯' },
+    { id: 'unicorn', name: 'Unicornio 🦄', cost: 25, icon: '🦄' },
+    { id: 'dragon', name: 'Dragón 🐲', cost: 30, icon: '🐲' },
+    { id: 'alien', name: 'Alienígena 👽', cost: 20, icon: '👽' },
+    { id: 'robot', name: 'Robot 🤖', cost: 20, icon: '🤖' },
+  ],
+  themes: [
+    { id: 'default', name: 'Original ✨', cost: 0, gradient: 'var(--alana-gradient)' },
+    { id: 'dark_night', name: 'Noche Oscura 🌑', cost: 15, gradient: 'linear-gradient(135deg, #1e293b, #0f172a)' },
+    { id: 'ocean', name: 'Océano Profundo 🌊', cost: 20, gradient: 'linear-gradient(135deg, #0ea5e9, #2563eb)' },
+    { id: 'forest', name: 'Bosque Mágico 🌿', cost: 20, gradient: 'linear-gradient(135deg, #10b981, #059669)' },
+    { id: 'sunset', name: 'Atardecer 🌅', cost: 25, gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
+    { id: 'galaxy', name: 'Galaxia 🌌', cost: 35, gradient: 'linear-gradient(135deg, #6366f1, #a855f7)' },
+  ]
+};

@@ -1,7 +1,7 @@
-<!-- Version: 3.1.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 3.3.0 | Updated: 2026-03-18 | Author: AI-assisted -->
 # HábitosFam – Documentación Técnica
 
-> Stack: FastAPI · SQLAlchemy · SQLite (pronto: PostgreSQL/MySQL) · HTML/CSS/JS vanilla
+> Stack: FastAPI · SQLAlchemy · SQLite (PostgreSQL/MySQL ready) · HTML5/CSS3 · TypeScript v5
 
 ---
 
@@ -53,72 +53,23 @@
 
 ## 🗄️ Esquema de Base de Datos (v3 — 9 tablas)
 
-### `app_settings`
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| id | INTEGER PK | Siempre 1 |
-| admin_pin_hash | STRING | SHA-256 del PIN admin |
-| currency_symbol | STRING | `$`, `€`, `₡`, etc. |
-| app_name | STRING | Nombre de la app |
-| streak_bonus_days | INTEGER | Días para bonus racha |
-| streak_bonus_pct | FLOAT | Multiplicador racha |
+> **Nota**: El esquema completo con todas las columnas, índices y relaciones está documentado en [DATABASE.md](./DATABASE.md).
 
-### `profiles`
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| id | INTEGER PK | |
-| slug | STRING UNIQUE | `alana`, `sofia` |
-| name | STRING | Nombre display |
-| age | INTEGER | Edad |
-| avatar | STRING | Emoji |
-| theme | STRING | Tema visual |
-| pin_hash | STRING | SHA-256 del PIN usuario |
-| weekly_reward_base | FLOAT | Base semanal ($) |
-| weekly_reward_full | FLOAT | Máximo semanal ($) |
-| monthly_reward_desc | STRING | Recompensa mensual |
-| monthly_min_pct | FLOAT | % mínimo para desbloquear |
-| level_idx | INTEGER | Nivel actual |
-| is_active | BOOLEAN | Perfil activo |
+### Tablas Principales
 
-### `habit_templates`
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| id | INTEGER PK | |
-| profile_id | FK | → profiles.id |
-| habit_key | STRING | `sport`, `study`, etc. |
-| name | STRING | Nombre del hábito |
-| icon | STRING | Emoji |
-| category | STRING | Categoría |
-| stars | INTEGER | Estrellas por completar |
-| description | STRING | Descripción corta |
-| motivation | STRING | Frase motivacional |
-| sort_order | INTEGER | Orden de visualización |
-| is_active | BOOLEAN | Hábito activo |
-| consecutive_days | INTEGER | Días consecutivos completados |
-| is_mastered | BOOLEAN | Hábito dominado (21+ días) |
-| mastered_at | DATETIME | Fecha cuando se dominó |
+| Tabla | Propósito |
+|-------|-----------|
+| `app_settings` | Configuración global (moneda, PIN admin, bonus racha) |
+| `profiles` | Perfiles de familiares (nombre, avatar, PIN, saldo) |
+| `habit_templates` | Hábitos asignados a cada perfil |
+| `micro_habits` | Sub-tareas dentro de cada hábito |
+| `reward_tiers` | Niveles de recompensa configurables |
+| `day_logs` | Registro diario de completado |
+| `habit_entries` | Estado de cada hábito por día |
+| `week_rewards` | Recompensas semanales |
+| `month_rewards` | Recompensas mensuales |
 
-### `micro_habits`
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| id | INTEGER PK | |
-| habit_template_id | FK | → habit_templates.id |
-| description | STRING | Texto del micro-hábito |
-| sort_order | INTEGER | Orden |
-
-### `reward_tiers`
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| id | INTEGER PK | |
-| profile_id | FK | → profiles.id |
-| tier_type | STRING | `weekly` o `monthly` |
-| min_pct | FLOAT | % mínimo para este nivel |
-| multiplier | FLOAT | Multiplicador recompensa |
-| label | STRING | Nombre del nivel |
-| emoji | STRING | Emoji del nivel |
-
-### `day_logs` / `habit_entries` / `week_rewards` / `month_rewards`
-Sin cambios — misma estructura v2.
+Para detalles completos (columnas, tipos, defaults, foreign keys), consulta [DATABASE.md](./DATABASE.md).
 
 ---
 
@@ -149,6 +100,7 @@ Sin cambios — misma estructura v2.
 | GET | `/api/profiles/{slug}/streak` | Racha actual |
 | GET | `/api/profiles/{slug}/dashboard` | Dashboard con data agregada |
 | GET | `/api/profiles/{slug}/trends?period=weekly|monthly|yearly` | Gráficos de tendencia (Chart.js) |
+| POST | `/api/profiles/{slug}/purchase` | **Comprar artículo virtual (avatar/tema)** |
 
 ### Endpoints admin (requieren header `X-Admin-Pin`)
 | Método | URL | Descripción |
@@ -166,6 +118,7 @@ Sin cambios — misma estructura v2.
 | GET | `/api/admin/profiles/{slug}/logs` | Ver registros |
 | DELETE | `/api/admin/profiles/{slug}/logs/{date}` | Borrar un registro |
 | POST | `/api/admin/profiles/{slug}/close-week` | Cerrar semana |
+| POST | `/api/admin/bulk-close-week` | **Cerrar semana masivamente** |
 | GET | `/api/admin/health` | Estado del sistema |
 | GET | `/api/admin/export/csv` | Exportar datos CSV |
 | POST | `/api/admin/seed` | Datos semilla |
@@ -181,6 +134,10 @@ Sin cambios — misma estructura v2.
 
 ## 🔄 Migración de Base de Datos
 
+> **Nota**: El esquema completo de la base de datos está documentado en [DATABASE.md](./DATABASE.md).
+
+### Cambio de Motor de Base de Datos
+
 El único archivo a modificar es `.env`:
 
 ```env
@@ -190,18 +147,39 @@ DATABASE_URL="postgresql://postgres:PASSWORD@db.PROJECT.supabase.co:5432/postgre
 
 Con SQLAlchemy, **no se necesita cambiar ningún otro archivo**.
 
-Para crear las tablas en el nuevo servidor:
+### Alembic Migraciones (Producción)
+
+HábitosFam usa **Alembic** para migraciones de esquema. Las migraciones se ejecutan automáticamente al iniciar la aplicación.
+
+#### Comandos常用:
+
 ```bash
-python -c "from backend.database import create_tables; create_tables()"
+# Instalar Alembic (ya incluido en requirements.txt)
+pip install alembic
+
+# Ejecutar todas las migraciones pendientes
+alembic upgrade head
+
+# Revertir la última migración
+alembic downgrade -1
+
+# Crear una nueva migración (después de cambios en modelos)
+alembic revision --autogenerate -m "descripcion del cambio"
+
+# Ver historial de migraciones
+alembic history
 ```
 
-Para migraciones de esquema (cuando se añaden columnas), usar Alembic:
+#### Para sistemas en producción que nunca usaron Alembic:
+
+Si tienes una base de datos existente (solo con `create_tables()`), ejecuta:
+
 ```bash
-pip install alembic
-alembic init alembic
-alembic revision --autogenerate -m "descripcion del cambio"
+# La migración inicial crea el esquema completo v3.3
 alembic upgrade head
 ```
+
+Esto detectará automáticamente el estado actual y aplicará las migraciones necesarias.
 
 ---
 

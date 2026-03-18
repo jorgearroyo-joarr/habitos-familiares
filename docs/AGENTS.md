@@ -1,4 +1,4 @@
-<!-- Version: 2.2.1 | Updated: 2026-03-15 | Standard: AGENTS.md 2025 -->
+<!-- Version: 2.3.0 | Updated: 2026-03-17 | Standard: AGENTS.md 2025 -->
 
 # AGENTS.md – HábitosFam
 
@@ -48,6 +48,7 @@ habitos-familiares/
 │       └── admin.py     # Admin API (PIN-protected)
 ├── docs/
 │   ├── TECHNICAL.md     # Architecture + API reference
+│   ├── DATABASE.md      # Complete database schema documentation
 │   ├── DEPLOYMENT.md    # Hosting options (Render, Fly.io, Railway)
 │   └── USER_GUIDE.md    # End-user guide (Spanish)
 ├── .agents/
@@ -180,6 +181,10 @@ update-docs         → for keeping docs in sync
 
 ## 🗄️ Database Migration Guide
 
+> **Important**: Full database schema documentation is available in [DATABASE.md](../docs/DATABASE.md).
+
+### Switch Databases
+
 To switch databases, **only** change `DATABASE_URL` in `.env`:
 
 ```env
@@ -194,6 +199,31 @@ DATABASE_URL="mysql+pymysql://user:pass@host:3306/habitosfam"
 ```
 
 **No other code changes needed.** SQLAlchemy handles the rest.
+
+### Alembic Migrations
+
+The project uses Alembic for schema migrations. Migrations run automatically on app startup.
+
+```bash
+# Run all pending migrations
+alembic upgrade head
+
+# Revert last migration
+alembic downgrade -1
+
+# Create new migration (after model changes)
+alembic revision --autogenerate -m "description of change"
+alembic upgrade head
+
+# View migration history
+alembic history
+```
+
+For systems in production that never used Alembic before:
+```bash
+# The initial migration creates the complete v3.3 schema
+alembic upgrade head
+```
 
 ---
 

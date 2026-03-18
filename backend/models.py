@@ -70,6 +70,11 @@ class Profile(Base):
     monthly_reward_desc = Column(String(255), default="Actividad especial 🎪")
     monthly_min_pct = Column(Float, default=0.75)  # 75% to unlock monthly
 
+    # Phase 4: Virtual Economy
+    balance = Column(Float, default=0.0)
+    unlocked_themes = Column(Text, default='["default"]')
+    unlocked_avatars = Column(Text, default='[]')
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

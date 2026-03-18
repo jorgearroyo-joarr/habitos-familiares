@@ -83,6 +83,9 @@ class ProfileOut(ProfileBase):
     monthly_reward_desc: str
     monthly_min_pct: float
     has_pin: bool = False
+    balance: float = 0.0
+    unlocked_themes_json: str | None = Field(None, validation_alias="unlocked_themes")
+    unlocked_avatars_json: str | None = Field(None, validation_alias="unlocked_avatars")
     created_at: datetime
 
 
@@ -227,6 +230,7 @@ class DayLogOut(BaseModel):
     bonus_star: bool
     habit_entries: list[HabitEntryOut] = []
     created_at: datetime
+    updated_at: datetime | None = None
 
 
 # ── Week/Month stats ─────────────────────────────────────────
@@ -363,3 +367,12 @@ class MonthCloseResult(BaseModel):
     reward_amount: float
     reward_desc: str
     already_closed: bool = False
+
+
+# ── Virtual Economy ───────────────────────────────────────────
+
+
+class PurchaseIn(BaseModel):
+    item_type: str  # 'theme' | 'avatar'
+    item_id: str
+    cost: float
