@@ -30,7 +30,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Startup: run migrations and seed default data."""
     print("DEBUG: Entering lifespan", flush=True)
-    logger.info("🚀 HábitosFam v3.3.2 starting up (%s)", settings.db_engine_type)
+    logger.info(
+        "🚀 HábitosFam %s starting up (%s)",
+        settings.app_version,
+        settings.db_engine_type,
+    )
     sys.stdout.flush()
 
     # Run Alembic migrations FIRST (handles both new and existing DBs)
@@ -51,6 +55,11 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         crud.seed_default_data(db)
+        db.commit()
+    except Exception as e:
+        logger.error(f"❌ Seed failed: {e}", exc_info=True)
+        db.rollback()
+        raise
     finally:
         db.close()
 
