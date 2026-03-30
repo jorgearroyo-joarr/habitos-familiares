@@ -980,7 +980,7 @@ async function updateNextRewardTier(slug: string, currentPct: number, currentEar
         
         // Example: Base = 10$, Multiplier = 1.5 => Target = 15$
         const streakBonus = state[slug]?.streak >= (appSettings.streak_days || 7) ? (appSettings.streak_bonus_pct || 1.5) : 1.0;
-        const baseReward = Number(profile.base_weekly_reward) || 0;
+        const baseReward = Number(profile.weekly_reward_base) || 0;
         const projectedEarn = baseReward * nextTier.multiplier * streakBonus;
         
         labelEl.textContent = `🎯 Siguiente meta: ${nextTier.emoji || '🎁'} ${nextTier.label || ''}`;
@@ -1129,7 +1129,7 @@ function computeWeeklyEarned(slug: string, weekPct: number) {
     const streakBonus = streak >= (appSettings.streak_days || 7) ? (appSettings.streak_bonus_pct || 1.5) : 1.0;
     
     // Ensure baseReward is a valid number to prevent NaN
-    const baseReward = Number(profile.base_weekly_reward) || 0;
+    const baseReward = Number(profile.weekly_reward_base) || 0;
 
     const thresholds = [
         { min: 0.90, mult: 2.0 }, { min: 0.75, mult: 1.5 },

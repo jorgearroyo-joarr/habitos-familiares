@@ -40,8 +40,8 @@ export interface Profile {
     avatar: string;
     theme: string;
     pin: string;
-    base_weekly_reward: number;
-    full_weekly_reward: number;
+    weekly_reward_base: number;
+    weekly_reward_full: number;
     monthly_min_pct: number;
     monthly_reward_desc: string;
     is_admin?: boolean;

@@ -132,7 +132,7 @@ function loadProfiles() {
             </div>
         </div>
         <div class="card-stats">
-            <span>💰 Base: ${appSettings.currency_symbol || '$'}${p.base_weekly_reward} / Full: ${appSettings.currency_symbol || '$'}${p.full_weekly_reward}</span>
+            <span>💰 Base: ${appSettings.currency_symbol || '$'}${p.weekly_reward_base} / Full: ${appSettings.currency_symbol || '$'}${p.weekly_reward_full}</span>
             <span>📅 Mensual ${Math.round((p.monthly_min_pct || 0) * 100)}%: ${p.monthly_reward_desc}</span>
         </div>
         <div class="card-actions">
@@ -175,8 +175,8 @@ export function editProfile(slug: string) {
     (document.getElementById('pf-avatar') as HTMLInputElement).value = p.avatar;
     (document.getElementById('pf-theme') as HTMLInputElement).value = p.theme;
     (document.getElementById('pf-pin') as HTMLInputElement).value = '';
-    (document.getElementById('pf-base') as HTMLInputElement).value = p.base_weekly_reward.toString();
-    (document.getElementById('pf-full') as HTMLInputElement).value = p.full_weekly_reward.toString();
+    (document.getElementById('pf-base') as HTMLInputElement).value = p.weekly_reward_base.toString();
+    (document.getElementById('pf-full') as HTMLInputElement).value = p.weekly_reward_full.toString();
     (document.getElementById('pf-monthly-pct') as HTMLInputElement).value = p.monthly_min_pct.toString();
     (document.getElementById('pf-monthly-desc') as HTMLTextAreaElement).value = p.monthly_reward_desc;
     document.getElementById('profile-modal')?.classList.remove('hidden');

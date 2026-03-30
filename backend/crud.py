@@ -1227,7 +1227,7 @@ def get_habit_templates_catalog():
 
 def seed_default_data(db: Session):
     """Seed profiles, habits, micro-habits, reward tiers, and app settings."""
-    # AppSettings
+    # 1. AppSettings
     cfg = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
     if not cfg:
         cfg = models.AppSettings(
@@ -1239,71 +1239,98 @@ def seed_default_data(db: Session):
         db.add(cfg)
         db.flush()
 
-    # Profiles
+    # 2. Profiles
     for tpl in PROFILE_TEMPLATES:
-        existing = (
+        profile = (
             db.query(models.Profile).filter(models.Profile.slug == tpl["slug"]).first()
         )
-        if existing:
-            continue
-
-        profile = models.Profile(
-            slug=tpl["slug"],
-            name=tpl["name"],
-            age=tpl["age"],
-            avatar=tpl["avatar"],
-            theme=tpl["theme"],
-            pin_hash=_hash_pin(str(tpl.get("pin"))) if tpl.get("pin") else None,
-            weekly_reward_base=tpl["weekly_reward_base"],
-            weekly_reward_full=tpl["weekly_reward_full"],
-            monthly_reward_desc=tpl["monthly_reward_desc"],
-            monthly_min_pct=tpl["monthly_min_pct"],
-        )
-        db.add(profile)
-        db.flush()
-
-        # Habit templates + micro-habits
-        habit_list = HABIT_TEMPLATES.get(str(tpl["slug"]), [])
-        for i, h in enumerate(habit_list):
-            ht = models.HabitTemplate(
-                profile_id=profile.id,
-                habit_key=h["habit_key"],
-                name=h["name"],
-                icon=h["icon"],
-                category=h["category"],
-                stars=h["stars"],
-                description=h.get("description", ""),
-                details=h.get("details", ""),
-                motivation=h.get("motivation", ""),
-                sort_order=i,
+        if not profile:
+            profile = models.Profile(
+                slug=tpl["slug"],
+                name=tpl["name"],
+                age=tpl["age"],
+                avatar=tpl["avatar"],
+                theme=tpl["theme"],
+                pin_hash=_hash_pin(str(tpl.get("pin"))) if tpl.get("pin") else None,
+                weekly_reward_base=tpl["weekly_reward_base"],
+                weekly_reward_full=tpl["weekly_reward_full"],
+                monthly_reward_desc=tpl["monthly_reward_desc"],
+                monthly_min_pct=tpl["monthly_min_pct"],
             )
-            db.add(ht)
+            db.add(profile)
             db.flush()
 
+        # 3. Habit templates + micro-habits
+        habit_list = HABIT_TEMPLATES.get(str(tpl["slug"]), [])
+        for i, h in enumerate(habit_list):
+            ht = (
+                db.query(models.HabitTemplate)
+                .filter(
+                    models.HabitTemplate.profile_id == profile.id,
+                    models.HabitTemplate.habit_key == h["habit_key"],
+                )
+                .first()
+            )
+            if not ht:
+                ht = models.HabitTemplate(
+                    profile_id=profile.id,
+                    habit_key=h["habit_key"],
+                    name=h["name"],
+                    icon=h["icon"],
+                    category=h["category"],
+                    stars=h["stars"],
+                    description=h.get("description", ""),
+                    details=h.get("details", ""),
+                    motivation=h.get("motivation", ""),
+                    sort_order=i,
+                )
+                db.add(ht)
+                db.flush()
+
+            # 4. Micro-habits
             raw_mh = h.get("micro_habits", [])
             if isinstance(raw_mh, list):
                 for j, desc in enumerate(raw_mh):
-                    db.add(
-                        models.MicroHabit(
-                            habit_template_id=ht.id,
-                            description=str(desc),
-                            sort_order=j,
+                    exists = (
+                        db.query(models.MicroHabit)
+                        .filter(
+                            models.MicroHabit.habit_template_id == ht.id,
+                            models.MicroHabit.description == str(desc),
                         )
+                        .first()
                     )
+                    if not exists:
+                        db.add(
+                            models.MicroHabit(
+                                habit_template_id=ht.id,
+                                description=str(desc),
+                                sort_order=j,
+                            )
+                        )
 
-        # Default weekly reward tiers
+        # 5. Default weekly reward tiers
         for tier in DEFAULT_WEEKLY_TIERS:
-            db.add(
-                models.RewardTier(
-                    profile_id=profile.id,
-                    tier_type="weekly",
-                    min_pct=tier["min_pct"],
-                    multiplier=tier["multiplier"],
-                    label=tier["label"],
-                    emoji=tier["emoji"],
-                    sort_order=tier["sort_order"],
+            exists = (
+                db.query(models.RewardTier)
+                .filter(
+                    models.RewardTier.profile_id == profile.id,
+                    models.RewardTier.tier_type == "weekly",
+                    models.RewardTier.min_pct == tier["min_pct"],
                 )
+                .first()
             )
+            if not exists:
+                db.add(
+                    models.RewardTier(
+                        profile_id=profile.id,
+                        tier_type="weekly",
+                        min_pct=tier["min_pct"],
+                        multiplier=tier["multiplier"],
+                        label=tier["label"],
+                        emoji=tier["emoji"],
+                        sort_order=tier["sort_order"],
+                    )
+                )
 
     db.commit()
 

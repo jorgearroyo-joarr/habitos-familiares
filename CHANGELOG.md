@@ -1,4 +1,4 @@
-<!-- Version: 3.4.2 | Updated: 2026-03-30 | Author: AI-assisted -->
+<!-- Version: 3.4.3 | Updated: 2026-03-30 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+
+## [3.4.3] - 2026-03-30
+
+### Fixed
+
+- **Robustez del Arranque (Lifespan)**: Refactorizada la función `seed_default_data` en `crud.py` para ser completamente idempotente. Ahora verifica la existencia de perfiles, hábitos, micro-hábitos y niveles de recompensa de forma individual, evitando violaciones de restricciones de unicidad (`IntegrityError`) en reinicios.
+- **Seguridad y Validación de API**: Añadidos `response_model` a los endpoints de administración (`admin_get_rewards`, `admin_close_week`) para garantizar que la serialización de modelos ORM (específicamente tras cambios de nombres de columnas como `earned_amount`) sea siempre válida y no provoque errores 500.
 
 ## [3.4.2] - 2026-03-30
 

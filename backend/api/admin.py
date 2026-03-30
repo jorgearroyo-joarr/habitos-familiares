@@ -300,7 +300,7 @@ def admin_get_logs(
     return crud.get_all_day_logs(db, profile.id)
 
 
-@router.get("/profiles/{slug}/rewards")
+@router.get("/profiles/{slug}/rewards", response_model=list[schemas.WeekRewardOut])
 def admin_get_rewards(
     slug: str, db: Session = Depends(get_db), auth=Depends(_verify_admin)
 ):
@@ -315,7 +315,7 @@ def admin_get_rewards(
     )
 
 
-@router.post("/profiles/{slug}/close-week")
+@router.post("/profiles/{slug}/close-week", response_model=schemas.WeekRewardOut)
 def admin_close_week(
     slug: str,
     week_start: str,

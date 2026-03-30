@@ -1,9 +1,9 @@
-<!-- Version: 1.0.0 | Updated: 2026-03-17 | Author: AI-assisted -->
+<!-- Version: 3.4.3 | Updated: 2026-03-30 | Author: AI-assisted -->
 
 # 📊 HábitosFam – Documentación de Base de Datos
 
-> Este documento describe el esquema de base de datos completo de HábitosFam v3.3.  
-> Stack: SQLAlchemy 2.0 + SQLite (PostgreSQL/MySQL compatible)
+> Este documento describe el esquema de base de datos completo de HábitosFam v3.4.3.  
+> Stack: SQLAlchemy 2.0 + SQLite (Desarrollo) / PostgreSQL (Producción)
 
 ---
 
@@ -287,6 +287,7 @@ Resumen de recompensa mensual por perfil.
 |-------|---------|-------------|
 | 2026-03-15 | c929fa34db3d | Agregar columnas de dominio de hábitos (consecutive_days, is_mastered, mastered_at) |
 | 2026-03-17 | 1231155072f6 | Agregar campos de economía virtual (balance, unlocked_themes, unlocked_avatars) |
+| 2026-03-29 | v330_initial | Migración inicial completa (Big Bang) para PostgreSQL en Render |
 
 ### Ejecutar Migraciones
 
@@ -309,14 +310,14 @@ alembic history
 
 ### Migración para Sistemas en Producción
 
-Si tienes una base de datos existente que nunca usó Alembic (solo `create_all()`), ejecuta:
+Si vas a desplegar en un entorno nuevo (como Render con Supabase), simplemente ejecuta:
 
 ```bash
-# Crear la migración inicial desde el estado actual
-alembic revision --autogenerate -m "initial from existing database"
+# Aplica el esquema completo v3.4.3 desde cero
+alembic upgrade head
 ```
 
-Esto creará una migración que representa el estado actual del esquema.
+Si tienes una base de datos existente que nunca usó Alembic, pero ya tiene las tablas (v3.0), ponte en contacto con el soporte técnico para marcar las migraciones como ejecutadas (`alembic stamp head`).
 
 ---
 

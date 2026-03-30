@@ -31,3 +31,12 @@ Este documento actúa como el "cerebro a largo plazo" y registro evolutivo de la
 | 2026-03-29 | Fix crash loop PostgreSQL (v3.4.1) | Claude Sonnet 4.6 Thinking | +50 | Leer logs de Render antes de buscar el bug en el código — los logs muestran exactamente dónde rompe (ROLLBACK tras query alana = falla en seed = falla en migration). | Migraciones Alembic deben ser idempotentes para PostgreSQL. `v330_initial` crea schema COMPLETO — migraciones delta deben verificar existencia de columnas antes de ADD COLUMN. INSERT en migraciones debe incluir todas las columnas NOT NULL. |
 
 *(Las nuevas entradas se añaden al final del documento siguiendo la plantilla proporcionada en la skill `ai-experience-tracker`)*
+- **Falla**: Error 500 en arranque de Render por violación de unicidad en `seed_default_data`.
+- **Causa**: El "seed" intentaba insertar hábitos/tiers duplicados en cada reinicio.
+- **Lección**: Las funciones de población de datos iniciales (*seeding*) deben ser 100% idempotentes independientemente de si el perfil existe o no.
+- **Acción**: Refactorizada lógica de semillas para usar "get_or_create" a nivel de cada registro individual.
+
+🆕 **2026-03-30: Robustez de API & Pydantic**
+- **Falla**: Error 500 potencial al serializar modelos ORM con nombres de columnas cambiados (ej: `amount` → `earned_amount`).
+- **Lección**: Nunca retornar modelos ORM crudos en la API sin un `response_model` explícito.
+- **Acción**: Reforzados los endpoints de `admin.py` con esquemas Pydantic para garantizar una salida tipada y segura.
