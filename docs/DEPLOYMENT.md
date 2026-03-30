@@ -1,4 +1,4 @@
-<!-- Version: 1.0.0 | Updated: 2026-03-15 | Author: AI-assisted -->
+<!-- Version: 1.1.0 | Updated: 2026-03-30 | Author: AI-assisted -->
 # 🚀 Guía de Despliegue - HábitosFam
 
 Este documento detalla cómo poner tu aplicación en internet de forma **completamente gratuita**.
@@ -20,14 +20,12 @@ Esta es la opción más estable. Render hospeda el código y Supabase hospeda la
 1. Sube tu código a un repositorio de **GitHub** (puede ser privado).
 2. Entra en [Render.com](https://render.com) y crea un nuevo **Web Service**.
 3. Conecta tu repositorio de GitHub.
-4. Configura los siguientes campos:
-   - **Runtime**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-5. Ve a la pestaña **Environment** y añade estas variables:
+4. Render detectará automáticamente el archivo `render.yaml` en la raíz del proyecto.
+   - **IMPORTANTE**: No necesitas configurar el Build ni el Start Command manualmente, el archivo `render.yaml` ya contiene las instrucciones óptimas (incluyendo la compilación del frontend con Node.js y el backend con Python).
+5. Ve a la pestaña **Environment** en Render para asegurarte de que las variables secretas estén configuradas (si no usas un archivo `.env` en el Dashboard):
    - `DATABASE_URL`: (Pega la URL de Supabase que copiaste arriba).
    - `ADMIN_PIN`: `1234` (O el PIN que prefieras para entrar al panel admin).
-6. Haz clic en **Create Web Service**. ¡Listo! Render te dará una URL (ej: `habitosfam.onrender.com`).
+6. Haz clic en **Create Web Service**. Render ejecutará `./build.sh` para preparar todo. ¡Listo! Render te dará una URL (ej: `habitosfam.onrender.com`).
 
 ---
 

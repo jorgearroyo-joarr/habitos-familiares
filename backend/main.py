@@ -42,11 +42,19 @@ async def lifespan(app: FastAPI):
         from alembic.config import Config
         from alembic import command
 
-        alembic_cfg = Config("alembic.ini")
+        ini_path = Path(__file__).parent.parent / "alembic.ini"
+        logger.info("🛠️ Running migrations from: %s", ini_path.absolute())
+        
+        alembic_cfg = Config(str(ini_path))
+        # Ensure alembic uses our configured database URL
+        alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url)
+        
         command.upgrade(alembic_cfg, "head")
-        logger.info("✅ Alembic migrations completed")
+        logger.info("✅ Alembic migrations completed on engine: %s", settings.db_engine_type)
     except Exception as e:
-        logger.warning(f"Migration check warning: {e}")
+        logger.error(f"❌ Migration failed: {e}", exc_info=True)
+        # In production, we might want to exit if migrations fail
+        # raise
 
     # Auto-seed default profiles, habits, micro-habits, reward tiers
     from . import crud

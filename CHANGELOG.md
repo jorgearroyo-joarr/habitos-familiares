@@ -1,4 +1,4 @@
-<!-- Version: 3.4.1 | Updated: 2026-03-29 | Author: AI-assisted -->
+<!-- Version: 3.4.2 | Updated: 2026-03-30 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
@@ -7,6 +7,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+
+## [3.4.2] - 2026-03-30
+
+### Fixed
+
+- **Infraestructura de Despliegue (Render.com)**: Corregidos múltiples puntos de falla en el despliegue:
+  - Sincronización de versiones de Python (`3.11.10`) entre `render.yaml` y `runtime.txt`.
+  - Robustecimiento de `build.sh` con verificaciones de entorno (Node, Python, Pip) y manejo de errores.
+  - Mejora de `backend/main.py`: Ahora usa rutas absolutas para `alembic.ini` y mejores logs de arranque.
+  - Optimización de migraciones: `render_as_batch` ahora es condicional al motor de DB (evitando problemas en PostgreSQL).
 
 ## [3.4.1] - 2026-03-29
 

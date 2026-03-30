@@ -33,7 +33,7 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        render_as_batch=True,
+        render_as_batch=settings.is_sqlite,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -51,7 +51,7 @@ def run_migrations_online():
         context.configure(
             connection=connection, 
             target_metadata=target_metadata,
-            render_as_batch=True,
+            render_as_batch=settings.is_sqlite,
         )
         with context.begin_transaction():
             context.run_migrations()
