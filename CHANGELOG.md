@@ -1,10 +1,26 @@
-<!-- Version: 3.4.0 | Updated: 2026-03-18 | Author: AI-assisted -->
+<!-- Version: 3.4.1 | Updated: 2026-03-29 | Author: AI-assisted -->
 
 # Changelog — HábitosFam
 
 All notable changes to this project are documented here.  
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).  
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [3.4.1] - 2026-03-29
+
+### Fixed
+
+- **CRÍTICO: Crash loop en startup con PostgreSQL (Render)** — El servidor reiniciaba infinitamente porque:
+  1. `v330_initial.py`: El `INSERT INTO app_settings` omitía `admin_pin_hash` (columna `NOT NULL`) → violación de constraint en PostgreSQL → ROLLBACK antes de que `seed_default_data` pudiera ejecutarse.
+  2. `c929fa34db3d_add_habit_mastery_columns.py`: Intentaba `ADD COLUMN` a columnas (`consecutive_days`, `is_mastered`, `mastered_at`) que `v330_initial` ya incluía en el `CREATE TABLE` → error `column already exists` en PostgreSQL.
+  3. `1231155072f6_add_economy_fields_to_profile.py`: Mismo problema para `balance`, `unlocked_themes`, `unlocked_avatars`.
+- **Fix colateral:** `crud.py` `get_comparison_charts()` usaba `WeekReward.amount` (columna inexistente) → corregido a `WeekReward.earned_amount`.
+
+### Changed
+
+- Las migraciones `c929fa34db3d` y `1231155072f6` ahora son **idempotentes**: usan `inspector.get_columns()` para verificar si las columnas ya existen antes de intentar crearlas. Esto las hace seguras tanto en DBs nuevas (PostgreSQL en Render) como en DBs con historial previo.
 
 ---
 

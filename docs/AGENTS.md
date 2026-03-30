@@ -257,6 +257,26 @@ For systems in production that never used Alembic before:
 alembic upgrade head
 ```
 
+### ⚠️ Regla Inquebrantable de Migraciones (PostgreSQL)
+
+> **NUNCA** escribas una migración delta que añada columnas sin verificar si ya existen.
+> `v330_initial` crea el schema COMPLETO. Migraciones posteriores deben ser idempotentes:
+
+```python
+# ✅ CORRECTO — idempotente
+bind = op.get_bind()
+inspector = sa.inspect(bind)
+existing_cols = [c["name"] for c in inspector.get_columns("my_table")]
+if "my_column" not in existing_cols:
+    op.add_column("my_table", sa.Column("my_column", sa.Integer()))
+
+# ❌ INCORRECTO — crash loop garantizado en Render/PostgreSQL
+op.add_column("my_table", sa.Column("my_column", sa.Integer()))
+```
+
+> **NUNCA** hagas `INSERT` en una migración omitiendo columnas `NOT NULL`.
+> Usa placeholders temporales — `seed_default_data` los sobreescribirá al inicio.
+
 ---
 
 ## 🧪 Running the Project
