@@ -20,21 +20,29 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Add habit mastery columns to habit_templates table
-    # These columns track consecutive days and mastery status for the dopamine system
+    # NOTE: v330_initial already includes these columns in its CREATE TABLE.
+    # When running on a fresh DB, these columns already exist so we skip them.
+    # When upgrading an OLDER DB that predates v330_initial, we add them.
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_cols = [c["name"] for c in inspector.get_columns("habit_templates")]
 
-    op.add_column(
-        "habit_templates",
-        sa.Column("consecutive_days", sa.Integer(), nullable=False, server_default="0"),
-    )
+    if "consecutive_days" not in existing_cols:
+        op.add_column(
+            "habit_templates",
+            sa.Column("consecutive_days", sa.Integer(), nullable=False, server_default="0"),
+        )
 
-    op.add_column(
-        "habit_templates",
-        sa.Column("is_mastered", sa.Boolean(), nullable=False, server_default="false"),
-    )
+    if "is_mastered" not in existing_cols:
+        op.add_column(
+            "habit_templates",
+            sa.Column("is_mastered", sa.Boolean(), nullable=False, server_default="false"),
+        )
 
-    op.add_column(
-        "habit_templates", sa.Column("mastered_at", sa.DateTime(), nullable=True)
-    )
+    if "mastered_at" not in existing_cols:
+        op.add_column(
+            "habit_templates", sa.Column("mastered_at", sa.DateTime(), nullable=True)
+        )
 
 
 def downgrade() -> None:

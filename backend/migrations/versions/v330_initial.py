@@ -36,8 +36,8 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    # Set default id=1
-    op.execute("INSERT INTO app_settings (id) VALUES (1)")
+    # Set default id=1 — admin_pin_hash is NOT NULL; seed_default_data will overwrite with real hash
+    op.execute("INSERT INTO app_settings (id, admin_pin_hash) VALUES (1, 'changeme')")
 
     # ============================================================
     # TABLE: profiles

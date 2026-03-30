@@ -1346,7 +1346,7 @@ def get_comparison_charts(db: Session):
 
         # Total rewards earned (weekly)
         total_rewards = (
-            db.query(func.sum(models.WeekReward.amount))
+            db.query(func.sum(models.WeekReward.earned_amount))
             .filter(models.WeekReward.profile_id == profile.id)
             .scalar()
         ) or 0.0
